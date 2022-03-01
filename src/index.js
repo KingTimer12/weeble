@@ -40,4 +40,5 @@ client.on('interactionCreate', async interaction => {
 	}
 });
 
+require('./update-commands.js')
 client.login(token);

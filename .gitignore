@@ -276,6 +276,8 @@ FakesAssemblies/
 node_modules/
 .config.json
 config.json
+databasefb.js
+./databasefb.js
 
 # Visual Studio 6 build log
 *.plg
