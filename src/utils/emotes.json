@@ -1,0 +1,142 @@
+{
+    "letter": {
+        "a": {
+            "gray": "<:letter_a:947965973917478912>",
+            "green": "<:letter_a_correct:947965973997158400>",
+            "yellow": "<:letter_a_yellow:947965974311735316>"
+        },
+        "b": {
+            "gray": "<:letter_b:947965973946830858>",
+            "green": "<:letter_b_correct:947965973720338514>",
+            "yellow": "<:letter_b_yellow:947965973930065972>"
+        },
+        "c": {
+            "gray": "<:letter_c:947965973984608296>",
+            "green": "<:letter_c_correct:947965974110433340>",
+            "yellow": "<:letter_c_yellow:947965974081052712>"
+        },
+        "d": {
+            "gray": "<:letter_d:947965973787467807>",
+            "green": "<:letter_d_correct:947965974123016222>",
+            "yellow": "<:letter_d_yellow:947965973816827925>"
+        },
+        "e": {
+            "gray": "<:letter_e:947965974282379274>",
+            "green": "<:letter_e_correct:947965974429204541>",
+            "yellow": "<:letter_e_yellow:947965974102040666>"
+        },
+        "f": {
+            "gray": "<:letter_f:947965974294966282>",
+            "green": "<:letter_f_correct:947965973707767869>",
+            "yellow": "<:letter_f_yellow:947965974315929600>"
+        },
+
+        "g": {
+            "gray": "<:letter_g:947965973825204276>",
+            "green": "<:letter_g_correct:947965974202691614>",
+            "yellow": "<:letter_g_yellow:947965973934256129>"
+        },
+        "h": {
+            "gray": "<:letter_h:947965974404026458>",
+            "green": "<:letter_h_correct:947965974362091530>",
+            "yellow": "<:letter_h_yellow:947965974412410991>"
+        },
+        "i": {
+            "gray": "<:letter_i:947965974341107777>",
+            "green": "<:letter_i_correct:947965974064300054>",
+            "yellow": "<:letter_i_yellow:947965974341103726>"
+        },
+        "j": {
+            "gray": "<:letter_j:947965974374653964>",
+            "green": "<:letter_j_correct:947965974324334622>",
+            "yellow": "<:letter_j_yellow:947965974009774163>"
+        },
+        "k": {
+            "gray": "<:letter_k:947965974513074186>",
+            "green": "<:letter_k_correct:947965974366277723>",
+            "yellow": "<:letter_k_yellow:947965974303371325>"
+        },
+        "l": {
+            "gray": "<:letter_l:947966879480287252>",
+            "green": "<:letter_l_correct:947966879400624209>",
+            "yellow": "<:letter_l_yellow:947966879467708466>"
+        },
+        "m": {
+            "gray": "<:letter_m:947965974341111860>",
+            "green": "<:letter_m_correct:947965973900697671>",
+            "yellow": "<:letter_m_yellow:947965974433386536>"
+        },
+        "n": {
+            "gray": "<:letter_n:947966879606120448>",
+            "green": "<:letter_n_correct:947966879824228362>",
+            "yellow": "<:letter_n_yellow:947966879597723699>"
+        },
+        "o": {
+            "gray": "<:letter_o:947965974139793429>",
+            "green": "<:letter_o_correct:947965974395621467>",
+            "yellow": "<:letter_o_yellow:947965974492102717>"
+        },
+        "p": {
+            "gray": "<:letter_p:947966879165726732>",
+            "green": "<:letter_p_correct:947966879648083988>",
+            "yellow": "<:letter_p_yellow:947966879224434699>"
+        },
+        "q": {
+            "gray": "<:letter_q:947965974550835270>",
+            "green": "<:letter_q_correct:947965974429179924>",
+            "yellow": "<:letter_q_yellow:947965974517256313>"
+        },
+        "r": {
+            "gray": "<:letter_r:947965974500474880>",
+            "green": "<:letter_r_correct:947965974169153617>",
+            "yellow": "<:letter_r_yellow:947965974378840084>"
+        },
+        "s": {
+            "gray": "<:letter_s:947973807581323276>",
+            "green": "<:letter_s_correct:947973808080449566>",
+            "yellow": "<:letter_s_yellow:947973808244019200>"
+        },
+        "t": {
+            "gray": "<:letter_t:947973808080437299>",
+            "green": "<:letter_t_correct:947973808063647784>",
+            "yellow": "<:letter_t_yellow:947973808038498344>"
+        },
+        "u": {
+            "gray": "<:letter_u:947973808063668224>",
+            "green": "<:letter_u_correct:947973808084615169>",
+            "yellow": "<:letter_u_yellow:947973808248225923>"
+        },
+        "v": {
+            "gray": "<:letter_v:947973808210460748>",
+            "green": "<:letter_v_correct:947973807753277492>",
+            "yellow": "<:letter_v_yellow:947973808323723320>"
+        },
+        "w": {
+            "gray": "<:letter_w:947973808290140170>",
+            "green": "<:letter_w_correct:947973807908454451>",
+            "yellow": "<:letter_w_yellow:947973808348876851>"
+        },
+        "x": {
+            "gray": "<:letter_x:947973808185290752>",
+            "green": "<:letter_x_correct:947973808323723310>",
+            "yellow": "<:letter_x_yellow:947973808252403792>"
+        },
+        "y": {
+            "gray": "<:letter_y:947973808197885952>",
+            "green": "<:letter_y_correct:947973807958786049>",
+            "yellow": "<:letter_y_yellow:947973807828783135>"
+        },
+        "z": {
+            "gray": "<:letter_z:947973808218837042>",
+            "green": "<:letter_z_correct:947973808269193226>",
+            "yellow": "<:letter_z_yellow:947973808302731274>"
+        }
+    },
+    "grid": {
+        "gray": "<:grid_gray:947967215947370517>"
+    },
+    "check": {
+        "green": "<:greenTick:893584062084681768>",
+        "red": "<:redTick:893584062076305418>"
+    }
+}
