@@ -47,8 +47,8 @@ module.exports = {
         new Promise(resolve => setTimeout(resolve, 200));
         await get(child(dbRef, `Words/Solo/${day}`)).then((snapshot) => {
             if (snapshot.exists()) {
-                word = snapshot.val()
-                console.log(snapshot.val())
+                word = snapshot.val().word
+                console.log(snapshot.val().word)
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
@@ -74,8 +74,10 @@ module.exports = {
 
         //checar se já existe a palavra
         let bool = false
-        await get(child(dbRef, `Words/Solo/${day}/${word}`)).then((snapshot) => {
-            bool = snapshot.exists()
+        await get(child(dbRef, `Words/Solo/${day}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                bool = word == snapshot.val().word
+            }
         })
         new Promise(resolve => setTimeout(resolve, 200));
         while (bool) {
@@ -88,7 +90,7 @@ module.exports = {
                 const array = Object.keys(await snapshot.val())
                 array.forEach(async userId => {
                     await set(child(dbRef, `Players/${userId}`), {
-                        stats: stats
+                        stats: false
                     })
                 })
             }
@@ -96,8 +98,9 @@ module.exports = {
         new Promise(resolve => setTimeout(resolve, 200));
 
         //adicionar a nova palavra
-        await set(child(dbRef, `Words/Solo/${day}/${word}`), {
-            timestamp: Date.now()
+        await set(child(dbRef, `Words/Solo/${day}`), {
+            timestamp: Date.now(),
+            word: word
         })
         return word
     }

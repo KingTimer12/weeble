@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const {grid, letter, others} = require('../utils/emotes.json')
-const {checkWord, getWord, setStatus, checkStatus, generateWord} = require('../handler/databasehandler.js')
+const {getWord, setStatus, checkStatus, generateWord} = require('../handler/databasehandler.js')
 const {words} = require('../utils/validGuess.json')
+const {usersPlaying} = require('../handler/usershandler.js')
 
 //pegar as mensagens que foram enviadas
 async function awaitMessage(interaction) {
@@ -86,10 +87,23 @@ async function gameSolo(interaction) {
 		'line4': `${grid['gray'].repeat(5)}`,
 		'line5': `${grid['gray'].repeat(5)}`,
 		'line6': `${grid['gray'].repeat(5)}`,
-	};
+	}
 
 	function returnGameTable() {
-		return Object.values(gameMessage).map(line => line).join('\n');
+		if (usersPlaying().has(userId)) {
+			const userTries = usersPlaying().get(userId)
+			if (userTries == undefined) {
+				return Object.values(gameMessage).map(line => line).join('\n')
+			}
+			for (let i = 0; i < 6; i++) {
+				if (userTries[i] == undefined || userTries[i] == null) {
+					gameMessage[`line${i + 1}`] = `${grid['gray'].repeat(5)}`
+				} else {
+					gameMessage[`line${i + 1}`] = userTries[i]
+				}
+			}
+		}
+		return Object.values(gameMessage).map(line => line).join('\n')
 	}
 
 	await interaction.reply({
@@ -109,21 +123,33 @@ async function gameSolo(interaction) {
 		if (word == 'cancelar') {
 			i = 7;
 		} else if (word.length != 5) {
-			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem** •\n\n${returnGameTable()}\n\n**ERRO** O nome precisa conter 5 letras! **ERRO**`);
+			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** O nome precisa conter 5 letras! **ERRO**`);
 			i--;
 		} else if (await validWord(word) == false) {
-			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem** •\n\n${returnGameTable()}\n\n**ERRO** Esse nome não existe! **ERRO**`);
+			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** Esse nome não existe! **ERRO**`);
 			i--;
 		} else {
-			gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord);
+
+			if (usersPlaying().has(userId)) {
+				let array = Object.keys(usersPlaying().get(userId))
+				array.push(await convertTextToEmojis(word, correctWord))
+				usersPlaying().set(userId, array)
+			} else {
+				let array = Object.keys({})
+				array.push(await convertTextToEmojis(word, correctWord))
+				usersPlaying().set(userId, array)
+			}
+
 			if (word == correctWord) {
 				await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} ${(i+1) == 1 ? "tentativa" : "tentativas"}! ${others['yay']}\n\n${returnGameTable()}`);
 				setStatus(userId, true)
+				usersPlaying().delete(userId)
 				i = 7
 			} else {
 				if (i == 5) {
 					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`);
 					setStatus(userId, true)
+					usersPlaying().delete(userId)
 				} else {
 					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do personagem!\n\n${returnGameTable()}`);
 				}
