@@ -1,8 +1,9 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const {grid, letter, others} = require('../utils/emotes.json')
-const WordHandler = require('../handler/WordHandler.js')
+const {checkWord, getWord, setStatus, checkStatus, generateWord} = require('../handler/databasehandler.js')
 const {words} = require('../utils/validGuess.json')
 
+//pegar as mensagens que foram enviadas
 async function awaitMessage(interaction) {
 	const filter = (msg) => interaction.user.id == msg.author.id
 	const sendedMessage = interaction.channel.awaitMessages({ max: 1, filter }).then(async (msg) => {
@@ -16,6 +17,7 @@ async function awaitMessage(interaction) {
 	return sendedMessage
 }
 
+//validar a palavra
 async function validWord(word) {
 	for await (const line of words) {
 		if (line == word) {
@@ -25,6 +27,7 @@ async function validWord(word) {
 	return false
 }
 
+//convertar a palavra em emojis
 async function convertTextToEmojis(word, correctWord) {
 	const contentArray = word.split('')
 	const correctWordArray = correctWord.split('')
@@ -66,12 +69,15 @@ async function convertTextToEmojis(word, correctWord) {
 	return Object.values(wordInEmojis).map(emoji => emoji).join('');
 }
 
+//o jogo
 async function gameSolo(interaction) {
 	const channel = interaction.client.channels.cache.get(interaction.channel.id);
 	if (!channel.permissionsFor(interaction.client.user).has('MANAGE_MESSAGES')) {
 		await interaction.reply('Eita! Aparentemente não tenho permissão para fazer essa ação. Por favor, me dê um cargo que tenha permissão: `Gerenciar mensagens`.');
 		return;
 	}
+
+	const userId = interaction.user.id
 
 	const gameMessage = {
 		'line1': `${grid['gray'].repeat(5)}`,
@@ -91,7 +97,8 @@ async function gameSolo(interaction) {
 		ephemeral: true,
 	});
 
-	const correctWord = await WordHandler.newWord()
+	const correctWord = await getWord(async () => await generateWord())
+
 	console.log(`${correctWord} palavra!`)
 
 	for (let i = 0; i < 6; i++) {
@@ -110,11 +117,13 @@ async function gameSolo(interaction) {
 		} else {
 			gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord);
 			if (word == correctWord) {
-				await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} tentativas! ${others['yay']}\n\n${returnGameTable()}`);
+				await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} ${(i+1) == 1 ? "tentativa" : "tentativas"}! ${others['yay']}\n\n${returnGameTable()}`);
+				setStatus(userId, true)
 				i = 7
 			} else {
 				if (i == 5) {
 					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`);
+					setStatus(userId, true)
 				} else {
 					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do personagem!\n\n${returnGameTable()}`);
 				}
@@ -128,6 +137,10 @@ module.exports = {
 		.setName('jogar')
 		.setDescription('Iniciar o jogo'),
 	async execute(interaction) {
-		gameSolo(interaction)
+		if (await checkStatus(interaction.user.id) == false) {
+			gameSolo(interaction)
+		} else {
+			console.log('Esse cara já jogou!')
+		}
 	},
 };

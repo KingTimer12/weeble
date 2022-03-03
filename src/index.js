@@ -1,6 +1,7 @@
 const fs = require('fs');
 const { Client, Collection, Intents } = require('discord.js');
 const {token} = require('../config.json');
+const {loopReset} = require('./handler/timehandler.js')
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 client.commands = new Collection();
@@ -21,6 +22,7 @@ client.once('ready', () => {
 		const randomActivity = activities[Math.floor(Math.random() * activities.length)];
 		client.user.setActivity(randomActivity.name, { type: randomActivity.type });
 	}, 900_000);
+	loopReset()
 	console.log('Bot ready!');
 });
 
