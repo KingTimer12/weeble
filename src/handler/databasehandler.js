@@ -7,20 +7,38 @@ module.exports = {
     async checkStatus(userId) {
         const dbRef = ref(db());
         let bool = false
-        await get(child(dbRef, `Players/${userId}`)).then(async (snapshot) => {
+        await get(child(dbRef, `Players/Solo/${userId}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 bool = await snapshot.val().stats
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
-        console.log(bool)
         return bool
+    },
+
+    async getStreak(userId) {
+        const dbRef = ref(db());
+        let streak = 0
+        await get(child(dbRef, `Players/Solo/${userId}`)).then(async (snapshot) => {
+            if (snapshot.exists()) {
+                streak = await snapshot.val().streak
+            }
+        })
+        new Promise(resolve => setTimeout(resolve, 200));
+        return streak
     },
 
     async setStatus(userId, stats) {
         const dbRef = ref(db());
-        await set(child(dbRef, `Players/${userId}`), {
+        await set(child(dbRef, `Players/Solo/${userId}`), {
             stats: stats
+        })
+    },
+
+    async setStreak(userId, streak) {
+        const dbRef = ref(db());
+        await set(child(dbRef, `Players/Solo/${userId}`), {
+            streak: streak
         })
     },
 
@@ -85,7 +103,7 @@ module.exports = {
         }
 
         //resetar os jogadores
-        await get(child(dbRef, `Players`)).then(async (snapshot) => {
+        await get(child(dbRef, `Players/Solo`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 array.forEach(async userId => {
