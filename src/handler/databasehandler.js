@@ -28,6 +28,30 @@ module.exports = {
         return streak
     },
 
+    async getStreakInfinite(userId) {
+        const dbRef = ref(db());
+        let streak = 0
+        await get(child(dbRef, `Players/Infinite/${userId}`)).then(async (snapshot) => {
+            if (snapshot.exists()) {
+                streak = await snapshot.val().streak
+            }
+        })
+        new Promise(resolve => setTimeout(resolve, 200));
+        return (streak == undefined ? 0 : streak)
+    },
+
+    async getStreakInfiniteMax(userId) {
+        const dbRef = ref(db());
+        let streak = 0
+        await get(child(dbRef, `Players/Infinite/${userId}`)).then(async (snapshot) => {
+            if (snapshot.exists()) {
+                streak = await snapshot.val().streakmax
+            }
+        })
+        new Promise(resolve => setTimeout(resolve, 200));
+        return (streak == undefined ? 0 : streak)
+    },
+
     async setStatus(userId, stats) {
         const dbRef = ref(db());
         await set(child(dbRef, `Players/Solo/${userId}`), {
@@ -39,6 +63,14 @@ module.exports = {
         const dbRef = ref(db());
         await set(child(dbRef, `Players/Solo/${userId}`), {
             streak: streak
+        })
+    },
+
+    async setStreakAndMaxInfinite(userId, streak, streakMax) {
+        const dbRef = ref(db());
+        await set(child(dbRef, `Players/Infinite/${userId}`), {
+            streak: streak,
+            streakmax: streakMax
         })
     },
 

@@ -1,9 +1,9 @@
 const fs = require('fs');
-const { Client, Collection, Intents } = require('discord.js');
+const { Client, Collection, Intents, Constants } = require('discord.js');
 const {token} = require('../config.json');
 const {loopReset} = require('./handler/timehandler.js')
 const {generateWord} = require('./handler/databasehandler.js')
-const {usersPlaying} = require('./handler/usershandler.js')
+const {usersPlaying, messagesInfinite} = require('./handler/usershandler.js')
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 client.commands = new Collection();
@@ -32,19 +32,22 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async interaction => {
-	if (!interaction.isCommand()) return;
-	const command = client.commands.get(interaction.commandName);
-	try {
-		await command.execute(interaction);
-	}
-	catch (error) {
-		console.error(error);
-		if (interaction.replied) {
-			await interaction.editReply('Ops! Um erro apareceu, por favor, tente novamente mais tarde.');
-		} else {
-			await interaction.reply('Ops! Um erro apareceu, por favor, tente novamente mais tarde.');
+	if (interaction.isCommand()) {
+		const command = client.commands.get(interaction.commandName);
+		try {
+			await command.execute(interaction);
 		}
+		catch (error) {
+			console.error(error);
+			if (interaction.replied) {
+				await interaction.editReply('Ops! Um erro apareceu, por favor, tente novamente mais tarde.');
+			} else {
+				await interaction.reply('Ops! Um erro apareceu, por favor, tente novamente mais tarde.');
+			}
+		}
+		return
 	}
+	
 });
 
 require('./update-commands.js')

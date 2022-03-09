@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { MessageEmbed } = require('discord.js');
+const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const {grid, letter, others} = require('../utils/emotes.json')
-const {getWord, setStatus, checkStatus, generateWord, getStreak, setStreak} = require('../handler/databasehandler.js')
+const {getWord, setStatus, checkStatus, generateWord, getStreak, setStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite} = require('../handler/databasehandler.js')
 const {words} = require('../utils/validGuess.json')
 const {usersPlaying} = require('../handler/usershandler.js')
 
@@ -220,14 +220,20 @@ async function gameSolo(interaction) {
 	}
 }
 
+async function playAgain(interaction) {
+	const filter = (button) => button.user.id == interaction.user.id;
+
+	let result = '';
+	await interaction.channel.awaitMessageComponent({ filter }).then(index => result = index.customId)
+
+	if (result == 'play') return true
+	else return false
+}
+
 
 //infinito
 async function gameInfinite(interaction) {
-	const channel = interaction.client.channels.cache.get(interaction.channel.id);
-	if (!channel.permissionsFor(interaction.client.user).has('MANAGE_MESSAGES')) {
-		await interaction.reply('Eita! Aparentemente não tenho permissão para fazer essa ação. Por favor, me dê um cargo que tenha permissão: `Gerenciar mensagens`.');
-		return;
-	}
+	if (!hasPermission(interaction)) return
 
 	const userId = interaction.user.id
 
@@ -255,10 +261,21 @@ async function gameInfinite(interaction) {
 		return Object.values(gameMessage).map(line => line).join('\n')
 	}
 
+	var streak = await getStreakInfinite(userId)
+	var streakMax = await getStreakInfiniteMax(userId)
+
+	var exampleEmbed = new MessageEmbed()
+	.setColor('AQUA')
+	.setTitle('[───────| WEEBLE |───────]')
+	.setDescription(`Adivinhe qual é o nome do **personagem**.\nPontuação: **${streak}**`)
+	.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+	.setTimestamp()
+	.setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
+
 	await interaction.reply({
-		content: `[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem** •\n\n${returnGameTable()}\n\n> Os personagens podem ser de animes e jogos!\n> Para cancelar o jogo, digite \`cancelar\``,
+		embeds: [exampleEmbed],
 		ephemeral: true,
-	});
+	})
 
 	var correctWord = words[Math.floor(Math.random() * words.length)]
 	console.log(`${correctWord} palavra!`)
@@ -271,26 +288,88 @@ async function gameInfinite(interaction) {
 		if (word == 'cancelar') {
 			i = 7;
 		} else if (word.length != 5) {
-			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** O nome precisa conter 5 letras! **ERRO**`);
+			exampleEmbed = new MessageEmbed()
+					.setColor('AQUA')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription('Adivinhe qual é o nome do **personagem**.')
+					.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
+			await interaction.editReply({embeds: [exampleEmbed]});
 			i--;
 		} else if (await validWord(word) == false) {
-			await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** Esse nome não existe! **ERRO**`);
+			exampleEmbed = new MessageEmbed()
+					.setColor('AQUA')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription('Adivinhe qual é o nome do **personagem**.')
+					.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
+			await interaction.editReply({embeds: [exampleEmbed]});
 			i--;
 		} else {
 
 			gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord);
 
 			if (word == correctWord) {
-				i = -1
-				correctWord = words[Math.floor(Math.random() * words.length)]
-				console.log(`${correctWord} palavra!`)
-				reset()
-				await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem** •\n\n${returnGameTable()}\n\n> Os personagens podem ser de animes e jogos!\n> Para cancelar o jogo, digite \`cancelar\``);
+				exampleEmbed = new MessageEmbed()
+					.setColor('AQUA')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Adivinhe qual é o nome do **personagem**.\nClique \`🔄 NOVO NOME\` para começar outra partida\nPontuação: **${streak}** | Recorde: **${streakMax}**`)
+					.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Clique em desistir para abandonar.' });
+				const buttons = new MessageActionRow().addComponents(
+					new MessageButton().setCustomId('play')
+					.setLabel('🔄 NOVO NOME')
+					.setStyle('PRIMARY'),
+					new MessageButton().setCustomId('cancel')
+					.setLabel('🚩 DESISTIR')
+					.setStyle('DANGER')
+				)
+				await interaction.editReply({embeds: [exampleEmbed], components: [buttons]})
+
+				await setStreakAndMaxInfinite(userId, streak+1, (streak+1) > streakMax ? (streak+1) : streakMax)
+
+				if (await playAgain(interaction) == true) {
+					streak = await getStreakInfinite(userId)
+					streakMax = await getStreakInfiniteMax(userId)
+					i = -1
+					correctWord = words[Math.floor(Math.random() * words.length)]
+					console.log(`${correctWord} palavra!`)
+					reset()
+					exampleEmbed = new MessageEmbed()
+					.setColor('AQUA')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Adivinhe qual é o nome do **personagem**.\nPontuação: **${streak}**`)
+					.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Para desistir do jogo, digite cancelar' });
+					await interaction.editReply({embeds: [exampleEmbed], components: []})
+				} else {
+					i = 7
+					await interaction.editReply({embeds: [exampleEmbed], components: []})
+				}
 			} else {
 				if (i == 5) {
-					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`);
+					exampleEmbed = new MessageEmbed()
+					.setColor('RED')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Você perdeu ${others['hihihi']}\nAcha que consegue acertar na próxima vez? ${others['hehehe']}`)
+					.addFields({ name: `O nome correto era ${correctWord}`, value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Comece um outro jogo usando o comando' })
+					await setStreakAndMaxInfinite(userId, 0, streakMax)
+					await interaction.editReply({embeds: [exampleEmbed]});
 				} else {
-					await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do personagem!\n\n${returnGameTable()}`);
+					exampleEmbed = new MessageEmbed()
+					.setColor('AQUA')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription('Adivinhe qual é o nome do **personagem**.')
+					.addFields({ name: '\u200B', value: returnGameTable(), inline: true })
+					.setTimestamp()
+					.setFooter({ text: 'Para desistir do jogo, digite cancelar' });
+					await interaction.editReply({embeds: [exampleEmbed]});
 				}
 			}
 		}
