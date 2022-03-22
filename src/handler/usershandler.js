@@ -1,11 +1,11 @@
-const users = new Map()
-const messages = new Map()
+const usersSolo = new Map()
+const usersDuo = new Map()
 
 module.exports = {
     usersPlaying() {
-        return users
+        return usersSolo
     },
-    messagesInfinite() {
-        return messages
+    usersDuoPlaying() {
+        return usersDuo
     }
 }
