@@ -3,7 +3,7 @@ const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const {grid, letter, others} = require('../utils/emotes.json')
 const {getWord, setStatus, checkStatus, generateWord, getStreak, setStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite} = require('../handler/databasehandler.js')
 const {words} = require('../utils/validGuess.json')
-const {usersPlaying, usersDuoPlaying} = require('../handler/usershandler.js')
+const {usersPlaying, usersDuoPlaying, checkUserWord} = require('../handler/usershandler.js')
 
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
@@ -132,7 +132,7 @@ async function gameSolo(interaction) {
 		ephemeral: true,
 	})
 
-	const correctWord = await getWord(async () => await generateWord())
+	const correctWord = await getWord('Solo', async () => await generateWord('Solo'))
 
 	console.log(`${correctWord} palavra!`)
 
@@ -240,7 +240,7 @@ async function gameDuo(interaction) {
 		if (usersDuoPlaying().has(userId)) {
 			const map = usersDuoPlaying().get(userId)
 			if (map.has(table)) {
-				const userTries = map.get(userId)
+				const userTries = map.get(table)
 				if (userTries == undefined) {
 					return Object.values(gameMessage).map(line => line).join('\n')
 				}
@@ -272,9 +272,13 @@ async function gameDuo(interaction) {
 		ephemeral: true,
 	})
 
-	const correctWord = await getWord(async () => await generateWord())
+	const correctWords = await getWord('Duo', async () => await generateWord('Duo'))
+	const split = correctWords.split(';')
+	const primaryWord = split[0]
+	const secondaryWord = split[1]
 
-	console.log(`${correctWord} palavra!`)
+	console.log(`${primaryWord} primeira palavra!`)
+	console.log(`${secondaryWord} segunda palavra!`)
 
 	for (let i = 0; i < 6; i++) {
 		const collectedMessage = await awaitMessage(interaction)
@@ -322,47 +326,80 @@ async function gameDuo(interaction) {
 				map = usersDuoPlaying().get(userId)
 				if (map.has(1)) {
 					table1 = map.get(1)
-					table1.push(await convertTextToEmojis(word, correctWord))
 				}
 				if (map.has(2)) {
 					table2 = map.get(2)
-					table2.push(await convertTextToEmojis(word, correctWord))
 				}
-			} else {
-				table1.push(await convertTextToEmojis(word, correctWord))
-				table2.push(await convertTextToEmojis(word, correctWord))
+			}
+			
+			if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == primaryWord)) {
+				table1.push(await convertTextToEmojis(word, primaryWord))
+			}
+			if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == secondaryWord)) {
+				table2.push(await convertTextToEmojis(word, secondaryWord))
 			}
 
 			map.set(1, table1)
 			map.set(2, table2)
 			usersDuoPlaying().set(userId, map)
 
-			if (word == correctWord) {
+			if (word == primaryWord && word == secondaryWord) {
 				exampleEmbed = new MessageEmbed()
 					.setColor('GREEN')
 					.setTitle('[───────| WEEBLE |───────]')
-					.setDescription(`Parabéns! Você acertou o nome. ${others["yay"]}`)
-					.addFields({ name: `Você está com streak de: ` + (streak+1), value: returnGameTable(1), inline: true })
+					.setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}`)
+					.addFields(
+						{ name: `Você está com streak de: ${(streak+1)}`, value: returnGameTable(1), inline: true },
+						{ name: `\u200B`, value: returnGameTable(2), inline: true }
+					)
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 				await interaction.editReply({embeds: [exampleEmbed]})
-				//await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} ${(i+1) == 1 ? "tentativa" : "tentativas"}! ${others['yay']}\n\n${returnGameTable()}`)
-				setStatus(userId, true)
-				setStreak(userId, (streak+1))
+				//setStatus(userId, true)
+				//setStreak(userId, (streak+1))
 				usersPlaying().delete(userId)
+				checkUserWord().delete(userId)
 				i = 7
+			} else if (word == primaryWord) {
+				exampleEmbed = new MessageEmbed()
+					.setColor('GREEN')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Primeira palavra encontrada!`)
+					.addFields(
+						{ name: `\u200B`, value: returnGameTable(1), inline: true },
+						{ name: `\u200B`, value: returnGameTable(2), inline: true }
+					)
+					.setTimestamp()
+					.setFooter({ text: 'Agora falta só a primeira' })
+				await interaction.editReply({embeds: [exampleEmbed]})
+				checkUserWord().set(userId, primaryWord)
+			} else if (word == secondaryWord) {
+				exampleEmbed = new MessageEmbed()
+					.setColor('GREEN')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Segunda palavra encontrada!`)
+					.addFields(
+						{ name: `\u200B`, value: returnGameTable(1), inline: true },
+						{ name: `\u200B`, value: returnGameTable(2), inline: true }
+					)
+					.setTimestamp()
+					.setFooter({ text: 'Agora falta só a segunda' })
+				await interaction.editReply({embeds: [exampleEmbed]})
+				checkUserWord().set(userId, secondaryWord)
 			} else {
 				if (i == 5) {
 					exampleEmbed = new MessageEmbed()
 					.setColor('RED')
 					.setTitle('[───────| WEEBLE |───────]')
 					.setDescription(`Você perdeu ${others['hihihi']}\nAcha que consegue acertar na próxima vez? ${others['hehehe']} ${streak == 0 ? `Você perdeu seu streak de ${streak}` : ``}`)
-					.addFields({ name: `O nome correto era ${correctWord}`, value: returnGameTable(1), inline: true })
+					.addFields(
+						{ name: checkUserWord().has(userId) && checkUserWord().get(userId) == primaryWord ? '\u200B' : `O nome correto: ${primaryWord}`, value: returnGameTable(1), inline: true },
+						{ name: checkUserWord().has(userId) && checkUserWord().get(userId) == secondaryWord ? '\u200B' : `O nome correto: ${secondaryWord}`, value: returnGameTable(2), inline: true }
+					)
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 					await interaction.editReply({embeds: [exampleEmbed]})
-					//await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`)
-					setStatus(userId, true)
+					//setStatus(userId, true)
 					usersPlaying().delete(userId)
 				} else {
 					exampleEmbed = new MessageEmbed()
@@ -376,7 +413,6 @@ async function gameDuo(interaction) {
 					.setTimestamp()
 					.setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
 					await interaction.editReply({embeds: [exampleEmbed]});
-					//await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do personagem!\n\n${returnGameTable()}`)
 				}
 			}
 		}

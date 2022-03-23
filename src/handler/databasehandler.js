@@ -77,28 +77,27 @@ module.exports = {
     async checkWord(word) {
         const dbRef = ref(db());
         let bool = false
-        await get(child(dbRef, `Words/Solo/${word}`)).then((snapshot) => {
+        await get(child(dbRef, `Words/${mode}/${word}`)).then((snapshot) => {
             bool = snapshot.exists()
         })
         new Promise(resolve => setTimeout(resolve, 200));
         return bool
     },
 
-    async getWord(callback) {
+    async getWord(mode, callback) {
         const dbRef = ref(db());
         let word = undefined
         var day = 1
-        await get(child(dbRef, `Words/Solo`)).then(async (snapshot) => {
+        await get(child(dbRef, `Words/${mode}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 day = array.length
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
-        await get(child(dbRef, `Words/Solo/${day}`)).then((snapshot) => {
+        await get(child(dbRef, `Words/${mode}/${day}`)).then((snapshot) => {
             if (snapshot.exists()) {
                 word = snapshot.val().word
-                console.log(snapshot.val().word)
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
@@ -108,13 +107,23 @@ module.exports = {
         return word
     },
 
-    async generateWord() {
+    async generateWord(mode) {
         const dbRef = ref(db());
-        var word = words[Math.floor(Math.random() * words.length)]
+        var word1 = words[Math.floor(Math.random() * words.length)]
+        var word2 = undefined
+        let word = undefined
+
+        if (mode == 'Duo') {
+            word2 = words[Math.floor(Math.random() * words.length)]
+            while (word1 == word2) {
+                word2 = words[Math.floor(Math.random() * words.length)]
+            }
+            word = `${word1};${word2}`
+        } else word = word1
 
         //pegar o dia
         var day = 1
-        await get(child(dbRef, `Words/Solo`)).then(async (snapshot) => {
+        await get(child(dbRef, `Words/${mode}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 day = array.length
@@ -124,18 +133,30 @@ module.exports = {
 
         //checar se já existe a palavra
         let bool = false
-        await get(child(dbRef, `Words/Solo/${day}`)).then((snapshot) => {
+        let bool2 = false
+        await get(child(dbRef, `Words/${mode}/${day}`)).then((snapshot) => {
             if (snapshot.exists()) {
-                bool = word == snapshot.val().word
+                if (mode == 'Duo') {
+                    var array = snapshot.val().word.split(';')
+                    bool = word1 == array[0]
+                    bool2 = word2 == array[1]
+                } else bool = word == snapshot.val().word
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
-        while (bool) {
+        if (mode == 'Duo') {
+            if (bool) {
+                word = `${words[Math.floor(Math.random() * words.length)]};${word2}`
+            }
+            if (bool2) {
+                word = `${word1};${words[Math.floor(Math.random() * words.length)]}`
+            }
+        } else if (bool) {
             word = words[Math.floor(Math.random() * words.length)]
         }
 
         //resetar os jogadores
-        await get(child(dbRef, `Players/Solo`)).then(async (snapshot) => {
+        await get(child(dbRef, `Players/${mode}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 array.forEach(async userId => {
@@ -148,7 +169,7 @@ module.exports = {
         new Promise(resolve => setTimeout(resolve, 200));
 
         //adicionar a nova palavra
-        await set(child(dbRef, `Words/Solo/${day}`), {
+        await set(child(dbRef, `Words/${mode}/${day}`), {
             timestamp: Date.now(),
             word: word
         })
