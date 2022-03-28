@@ -2,8 +2,9 @@ const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const {grid, letter, others} = require('../utils/emotes.json')
 const {getWord, setStatus, checkStatus, generateWord, getStreak, setStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite} = require('../handler/databasehandler.js')
-const {words} = require('../utils/validGuess.json')
 const {usersPlaying, usersDuoPlaying, checkUserWord} = require('../handler/usershandler.js')
+const readline = require('readline');
+const fs = require('fs');
 
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
@@ -27,8 +28,14 @@ async function awaitMessage(interaction) {
 
 //validar a palavra
 async function validWord(word) {
+	const words = readline.createInterface({
+		input: fs.createReadStream('src/utils/validGuess.txt'),
+		output: process.stdout,
+		terminal: false,
+	});
+
 	for await (const line of words) {
-		if (line == word) {
+		if (line.toLowerCase() == word.toLowerCase()) {
 			return true
 		}
 	}
@@ -94,12 +101,12 @@ async function gameSolo(interaction) {
 	const streak = await getStreak(userId)
 
 	const gameMessage = {
-		'line1': `${grid['gray'].repeat(5)}`,
-		'line2': `${grid['gray'].repeat(5)}`,
-		'line3': `${grid['gray'].repeat(5)}`,
-		'line4': `${grid['gray'].repeat(5)}`,
-		'line5': `${grid['gray'].repeat(5)}`,
-		'line6': `${grid['gray'].repeat(5)}`,
+		'line1': `   ${grid['gray'].repeat(5)}`,
+		'line2': `   ${grid['gray'].repeat(5)}`,
+		'line3': `   ${grid['gray'].repeat(5)}`,
+		'line4': `   ${grid['gray'].repeat(5)}`,
+		'line5': `   ${grid['gray'].repeat(5)}`,
+		'line6': `   ${grid['gray'].repeat(5)}`,
 	}
 
 	function returnGameTable() {
@@ -233,7 +240,7 @@ async function gameDuo(interaction) {
 		'line3': `${grid['gray'].repeat(5)}`,
 		'line4': `${grid['gray'].repeat(5)}`,
 		'line5': `${grid['gray'].repeat(5)}`,
-		'line6': `${grid['gray'].repeat(5)}`,
+		'line6': `${grid['gray'].repeat(5)}`
 	}
 
 	function returnGameTable(table) {
@@ -343,8 +350,9 @@ async function gameDuo(interaction) {
 			map.set(2, table2)
 			usersDuoPlaying().set(userId, map)
 
-			if (word == primaryWord && word == secondaryWord) {
-				exampleEmbed = new MessageEmbed()
+			if (word == primaryWord) {
+				if (checkUserWord().has(userId)) {
+					exampleEmbed = new MessageEmbed()
 					.setColor('GREEN')
 					.setTitle('[───────| WEEBLE |───────]')
 					.setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}`)
@@ -354,13 +362,14 @@ async function gameDuo(interaction) {
 					)
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
-				await interaction.editReply({embeds: [exampleEmbed]})
-				//setStatus(userId, true)
-				//setStreak(userId, (streak+1))
-				usersPlaying().delete(userId)
-				checkUserWord().delete(userId)
-				i = 7
-			} else if (word == primaryWord) {
+					await interaction.editReply({embeds: [exampleEmbed]})
+					//setStatus(userId, true)
+					//setStreak(userId, (streak+1))
+					usersPlaying().delete(userId)
+					checkUserWord().delete(userId)
+					i = 7
+					return
+				}
 				exampleEmbed = new MessageEmbed()
 					.setColor('GREEN')
 					.setTitle('[───────| WEEBLE |───────]')
@@ -370,10 +379,29 @@ async function gameDuo(interaction) {
 						{ name: `\u200B`, value: returnGameTable(2), inline: true }
 					)
 					.setTimestamp()
-					.setFooter({ text: 'Agora falta só a primeira' })
+					.setFooter({ text: 'Agora falta só a segunda' })
 				await interaction.editReply({embeds: [exampleEmbed]})
 				checkUserWord().set(userId, primaryWord)
 			} else if (word == secondaryWord) {
+				if (checkUserWord().has(userId)) {
+					exampleEmbed = new MessageEmbed()
+					.setColor('GREEN')
+					.setTitle('[───────| WEEBLE |───────]')
+					.setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}`)
+					.addFields(
+						{ name: `Você está com streak de: ${(streak+1)}`, value: returnGameTable(1), inline: true },
+						{ name: `\u200B`, value: returnGameTable(2), inline: true }
+					)
+					.setTimestamp()
+					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
+					await interaction.editReply({embeds: [exampleEmbed]})
+					//setStatus(userId, true)
+					//setStreak(userId, (streak+1))
+					usersPlaying().delete(userId)
+					checkUserWord().delete(userId)
+					i = 7
+					return
+				}
 				exampleEmbed = new MessageEmbed()
 					.setColor('GREEN')
 					.setTitle('[───────| WEEBLE |───────]')
@@ -383,7 +411,7 @@ async function gameDuo(interaction) {
 						{ name: `\u200B`, value: returnGameTable(2), inline: true }
 					)
 					.setTimestamp()
-					.setFooter({ text: 'Agora falta só a segunda' })
+					.setFooter({ text: 'Agora falta só a primeira' })
 				await interaction.editReply({embeds: [exampleEmbed]})
 				checkUserWord().set(userId, secondaryWord)
 			} else {
@@ -475,8 +503,18 @@ async function gameInfinite(interaction) {
 		embeds: [exampleEmbed],
 		ephemeral: true,
 	})
+	const read = readline.createInterface({
+		input: fs.createReadStream('src/utils/validGuess.txt'),
+		output: process.stdout,
+		terminal: false,
+	});
 
-	var correctWord = words[Math.floor(Math.random() * words.length)]
+	const words = Object.keys({})
+	for await (const line of read) {
+		words.push(line)
+	}
+
+	var correctWord = words[Math.floor(Math.random() * words.length)].toLowerCase()
 	console.log(`${correctWord} palavra!`)
 
 	for (let i = 0; i < 6; i++) {
@@ -534,7 +572,7 @@ async function gameInfinite(interaction) {
 					streak = await getStreakInfinite(userId)
 					streakMax = await getStreakInfiniteMax(userId)
 					i = -1
-					correctWord = words[Math.floor(Math.random() * words.length)]
+					correctWord = words[Math.floor(Math.random() * words.length)].toLowerCase()
 					console.log(`${correctWord} palavra!`)
 					reset()
 					exampleEmbed = new MessageEmbed()

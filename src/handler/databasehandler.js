@@ -1,6 +1,7 @@
 const { db } = require('../../databasefb.js')
 const { ref, child, get, set } = require('firebase/database')
-const {words} = require('../utils/worldList.json')
+const fs = require('fs');
+const readline = require('readline');
 
 module.exports = {
     
@@ -109,14 +110,25 @@ module.exports = {
 
     async generateWord(mode) {
         const dbRef = ref(db());
-        var word1 = words[Math.floor(Math.random() * words.length)]
+
+        const read = readline.createInterface({
+            input: fs.createReadStream('src/utils/validGuess.txt'),
+            output: process.stdout,
+            terminal: false,
+        });
+        const words = Object.keys({})
+        for await (const line of read) {
+            words.push(line)
+        }
+
+        var word1 = words[Math.floor(Math.random() * words.length)].toLowerCase()
         var word2 = undefined
         let word = undefined
 
         if (mode == 'Duo') {
-            word2 = words[Math.floor(Math.random() * words.length)]
+            word2 = words[Math.floor(Math.random() * words.length)].toLowerCase()
             while (word1 == word2) {
-                word2 = words[Math.floor(Math.random() * words.length)]
+                word2 = words[Math.floor(Math.random() * words.length)].toLowerCase()
             }
             word = `${word1};${word2}`
         } else word = word1
@@ -146,13 +158,13 @@ module.exports = {
         new Promise(resolve => setTimeout(resolve, 200));
         if (mode == 'Duo') {
             if (bool) {
-                word = `${words[Math.floor(Math.random() * words.length)]};${word2}`
+                word = `${words[Math.floor(Math.random() * words.length)].toLowerCase()};${word2}`
             }
             if (bool2) {
-                word = `${word1};${words[Math.floor(Math.random() * words.length)]}`
+                word = `${word1};${words[Math.floor(Math.random() * words.length)].toLowerCase()}`
             }
         } else if (bool) {
-            word = words[Math.floor(Math.random() * words.length)]
+            word = words[Math.floor(Math.random() * words.length)].toLowerCase()
         }
 
         //resetar os jogadores
