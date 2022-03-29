@@ -279,6 +279,8 @@ config.json
 databasefb.js
 ./databasefb.js
 Weeble.zip
+start.sh
+start.bat
 
 # Visual Studio 6 build log
 *.plg

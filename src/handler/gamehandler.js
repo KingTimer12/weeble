@@ -8,7 +8,7 @@ const fs = require('fs');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
-const { errorNotExistEmbed, error5lettersEmbed } = require('./embedhandler');
+const { errorNotExistEmbed, error5lettersEmbed, infiniteDefaultEmbed, defaultEmbed, infiniteLostEmbed, infiniteCorrectEmbed } = require('./embedhandler');
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -220,19 +220,10 @@ module.exports = {
                             .setTimestamp()
                             .setFooter({ text: 'Próxima palavra sairá às 00:00' })
                         await interaction.editReply({ embeds: [exampleEmbed] })
-                        //await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`)
                         updatePlayer(userId, 'Solo', true, streak + 1)
                         usersPlaying().delete(userId)
                     } else {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('AQUA')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription('Adivinhe qual é o nome do **personagem**.')
-                            .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                            .setTimestamp()
-                            .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-                        await interaction.editReply({ embeds: [exampleEmbed] });
-                        //await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do personagem!\n\n${returnGameTable()}`)
+                        await interaction.editReply({ embeds: [defaultEmbed(() => returnGameTable())] });
                     }
                 }
             }
@@ -490,16 +481,8 @@ module.exports = {
         var streak = await getStreakInfinite(userId)
         var streakMax = await getStreakInfiniteMax(userId)
 
-        var exampleEmbed = new MessageEmbed()
-            .setColor('AQUA')
-            .setTitle('[───────| WEEBLE |───────]')
-            .setDescription(`Adivinhe qual é o nome do **personagem**.\nPontuação: **${streak}**`)
-            .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-            .setTimestamp()
-            .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-
         await interaction.reply({
-            embeds: [exampleEmbed],
+            embeds: [infiniteDefaultEmbed(streak, streakMax, () => returnGameTable())],
             ephemeral: true,
         })
         const read = readline.createInterface({
@@ -524,23 +507,9 @@ module.exports = {
             if (word == 'cancelar') {
                 i = 7;
             } else if (word.length != 5) {
-                /*exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription('Adivinhe qual é o nome do **personagem**.')
-                    .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                    .setTimestamp()
-                    .setFooter({ text: 'O nome precisa conter 5 letras.' });*/
                 await interaction.editReply({ embeds: [error5lettersEmbed(() => returnGameTable())] });
                 i--;
             } else if (await validWord(word) == false) {
-                /*exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription('Adivinhe qual é o nome do **personagem**.')
-                    .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                    .setTimestamp()
-                    .setFooter({ text: 'Esse nome não existe!' });*/
                 await interaction.editReply({ embeds: [errorNotExistEmbed(() => returnGameTable())] });
                 i--;
             } else {
@@ -548,13 +517,6 @@ module.exports = {
                 gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord);
 
                 if (word == correctWord) {
-                    exampleEmbed = new MessageEmbed()
-                        .setColor('AQUA')
-                        .setTitle('[───────| WEEBLE |───────]')
-                        .setDescription(`Adivinhe qual é o nome do **personagem**.\nClique \`🔄 NOVO NOME\` para começar outra partida\nPontuação: **${streak}** | Recorde: **${streakMax}**`)
-                        .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                        .setTimestamp()
-                        .setFooter({ text: 'Clique em desistir para abandonar.' });
                     const buttons = new MessageActionRow().addComponents(
                         new MessageButton().setCustomId('play')
                             .setLabel('🔄 NOVO NOME')
@@ -563,7 +525,7 @@ module.exports = {
                             .setLabel('🚩 DESISTIR')
                             .setStyle('DANGER')
                     )
-                    await interaction.editReply({ embeds: [exampleEmbed], components: [buttons] })
+                    await interaction.editReply({ embeds: [infiniteCorrectEmbed(streak, streakMax, () => returnGameTable())], components: [buttons] })
 
                     await setStreakAndMaxInfinite(userId, streak + 1, (streak + 1) > streakMax ? (streak + 1) : streakMax)
 
@@ -574,38 +536,17 @@ module.exports = {
                         correctWord = words[Math.floor(Math.random() * words.length)].toLowerCase()
                         console.log(`${correctWord} palavra!`)
                         reset()
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('AQUA')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Adivinhe qual é o nome do **personagem**.\nPontuação: **${streak}**`)
-                            .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                            .setTimestamp()
-                            .setFooter({ text: 'Para desistir do jogo, digite cancelar' });
-                        await interaction.editReply({ embeds: [exampleEmbed], components: [] })
+                        await interaction.editReply({ embeds: [infiniteDefaultEmbed(streak, streakMax, () => returnGameTable())], components: [] })
                     } else {
                         i = 7
-                        await interaction.editReply({ embeds: [exampleEmbed], components: [] })
+                        await interaction.editReply({ content: '', embeds: [], components: [] })
                     }
                 } else {
                     if (i == 5) {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('RED')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Você perdeu ${others['hihihi']}\nAcha que consegue acertar na próxima vez? ${others['hehehe']}`)
-                            .addFields({ name: `O nome correto era ${correctWord}`, value: returnGameTable(), inline: true })
-                            .setTimestamp()
-                            .setFooter({ text: 'Comece um outro jogo usando o comando' })
                         await setStreakAndMaxInfinite(userId, 0, streakMax)
-                        await interaction.editReply({ embeds: [exampleEmbed] });
+                        await interaction.editReply({ embeds: [infiniteLostEmbed(streak, correctWord, () => returnGameTable())] });
                     } else {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('AQUA')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription('Adivinhe qual é o nome do **personagem**.')
-                            .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-                            .setTimestamp()
-                            .setFooter({ text: 'Para desistir do jogo, digite cancelar' });
-                        await interaction.editReply({ embeds: [exampleEmbed] });
+                        await interaction.editReply({ embeds: [defaultEmbed(() => returnGameTable())] });
                     }
                 }
             }
