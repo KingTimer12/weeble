@@ -29,7 +29,7 @@ async function awaitMessage(interaction) {
 //validar a palavra
 async function validWord(word) {
 	const words = readline.createInterface({
-		input: fs.createReadStream('src/utils/validGuess.txt'),
+		input: fs.createReadStream('src/utils/wordsList.txt'),
 		output: process.stdout,
 		terminal: false,
 	});
@@ -501,7 +501,7 @@ async function gameInfinite(interaction) {
 		ephemeral: true,
 	})
 	const read = readline.createInterface({
-		input: fs.createReadStream('src/utils/validGuess.txt'),
+		input: fs.createReadStream('src/utils/wordsList.txt'),
 		output: process.stdout,
 		terminal: false,
 	});

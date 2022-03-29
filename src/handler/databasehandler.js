@@ -106,7 +106,7 @@ module.exports = {
         const dbRef = ref(db());
 
         const read = readline.createInterface({
-            input: fs.createReadStream('src/utils/validGuess.txt'),
+            input: fs.createReadStream('src/utils/wordsList.txt'),
             output: process.stdout,
             terminal: false,
         });
