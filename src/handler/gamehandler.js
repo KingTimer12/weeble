@@ -8,6 +8,7 @@ const fs = require('fs');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
+const { errorNotExistEmbed, error5lettersEmbed } = require('./embedhandler');
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -523,24 +524,24 @@ module.exports = {
             if (word == 'cancelar') {
                 i = 7;
             } else if (word.length != 5) {
-                exampleEmbed = new MessageEmbed()
+                /*exampleEmbed = new MessageEmbed()
                     .setColor('AQUA')
                     .setTitle('[───────| WEEBLE |───────]')
                     .setDescription('Adivinhe qual é o nome do **personagem**.')
                     .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
                     .setTimestamp()
-                    .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-                await interaction.editReply({ embeds: [exampleEmbed] });
+                    .setFooter({ text: 'O nome precisa conter 5 letras.' });*/
+                await interaction.editReply({ embeds: [error5lettersEmbed(() => returnGameTable())] });
                 i--;
             } else if (await validWord(word) == false) {
-                exampleEmbed = new MessageEmbed()
+                /*exampleEmbed = new MessageEmbed()
                     .setColor('AQUA')
                     .setTitle('[───────| WEEBLE |───────]')
                     .setDescription('Adivinhe qual é o nome do **personagem**.')
                     .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
                     .setTimestamp()
-                    .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-                await interaction.editReply({ embeds: [exampleEmbed] });
+                    .setFooter({ text: 'Esse nome não existe!' });*/
+                await interaction.editReply({ embeds: [errorNotExistEmbed(() => returnGameTable())] });
                 i--;
             } else {
 
