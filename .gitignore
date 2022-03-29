@@ -278,6 +278,7 @@ node_modules/
 config.json
 databasefb.js
 ./databasefb.js
+Weeble.zip
 
 # Visual Studio 6 build log
 *.plg
