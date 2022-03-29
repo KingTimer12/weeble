@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const {grid, letter, others} = require('../utils/emotes.json')
-const {getWord, setStatus, checkStatus, generateWord, getStreak, setStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite} = require('../handler/databasehandler.js')
+const {getWord, checkStatus, generateWord, getStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite, updatePlayer} = require('../handler/databasehandler.js')
 const {usersPlaying, usersDuoPlaying, checkUserWord} = require('../handler/usershandler.js')
 const readline = require('readline');
 const fs = require('fs');
@@ -98,7 +98,7 @@ async function gameSolo(interaction) {
 	if (!hasPermission(interaction)) return
 
 	const userId = interaction.user.id
-	const streak = await getStreak(userId)
+	const streak = await getStreak(userId, 'Solo')
 
 	const gameMessage = {
 		'line1': `   ${grid['gray'].repeat(5)}`,
@@ -194,8 +194,7 @@ async function gameSolo(interaction) {
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 				await interaction.editReply({embeds: [exampleEmbed]})
 				//await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} ${(i+1) == 1 ? "tentativa" : "tentativas"}! ${others['yay']}\n\n${returnGameTable()}`)
-				setStatus(userId, true)
-				setStreak(userId, (streak+1))
+				updatePlayer(userId, 'Solo', true, (streak+1))
 				usersPlaying().delete(userId)
 				i = 7
 			} else {
@@ -209,7 +208,7 @@ async function gameSolo(interaction) {
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 					await interaction.editReply({embeds: [exampleEmbed]})
 					//await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nVocê perdeu ${others['hihihi']}\nO nome correto era \`${correctWord}\` :nerd:\nAcha que consegue acertar a próxima? ${others['hehehe']}\n\n${returnGameTable()}`)
-					setStatus(userId, true)
+					updatePlayer(userId, 'Solo', true, streak+1)
 					usersPlaying().delete(userId)
 				} else {
 					exampleEmbed = new MessageEmbed()
@@ -232,7 +231,7 @@ async function gameDuo(interaction) {
 	if (!hasPermission(interaction)) return
 
 	const userId = interaction.user.id
-	const streak = await getStreak(userId)
+	const streak = await getStreak(userId, 'Duo')
 
 	const gameMessage = {
 		'line1': `${grid['gray'].repeat(5)}`,
@@ -363,8 +362,7 @@ async function gameDuo(interaction) {
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 					await interaction.editReply({embeds: [exampleEmbed]})
-					//setStatus(userId, true)
-					//setStreak(userId, (streak+1))
+					updatePlayer(userId, 'Duo', true, (streak+1))
 					usersPlaying().delete(userId)
 					checkUserWord().delete(userId)
 					i = 7
@@ -395,8 +393,7 @@ async function gameDuo(interaction) {
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 					await interaction.editReply({embeds: [exampleEmbed]})
-					//setStatus(userId, true)
-					//setStreak(userId, (streak+1))
+					updatePlayer(userId, 'Duo', true, (streak+1))
 					usersPlaying().delete(userId)
 					checkUserWord().delete(userId)
 					i = 7
@@ -427,7 +424,7 @@ async function gameDuo(interaction) {
 					.setTimestamp()
 					.setFooter({ text: 'Próxima palavra sairá às 00:00' })
 					await interaction.editReply({embeds: [exampleEmbed]})
-					//setStatus(userId, true)
+					updatePlayer(userId, 'Duo', true, streak)
 					usersPlaying().delete(userId)
 				} else {
 					exampleEmbed = new MessageEmbed()
@@ -631,7 +628,7 @@ module.exports = {
 			.setDescription('O dobro do perigo!')),
 	async execute(interaction) {
 		if (interaction.options.getSubcommand() == 'diário') {
-			if (await checkStatus(interaction.user.id) == false) {
+			if (await checkStatus(interaction.user.id, 'Solo') == false) {
 				gameSolo(interaction)
 				return
 			}
@@ -643,7 +640,15 @@ module.exports = {
 		} else if (interaction.options.getSubcommand() == 'infinito') {
 			gameInfinite(interaction)
 		} else {
-			gameDuo(interaction)
+			if (await checkStatus(interaction.user.id, 'Duo') == false) {
+				gameDuo(interaction)
+				return
+			}
+			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
+			await interaction.reply({
+				content: `Você já jogou o dueto hoje! Tempo restante até a próxima palavra: <t:${timestamp}:R>`,
+				ephemeral: true,
+			});
 		}
 	},
 };

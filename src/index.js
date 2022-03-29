@@ -14,7 +14,7 @@ for (const file of commandFiles) {
 }
 
 client.once('ready', () => {
-    client.user.setActivity({ type: 'PLAYING', name: 'contra você!' });
+    client.user.setActivity({ type: 'WATCHING', name: 'suas tentativas...' });
 	setInterval(() => {
 		const activities = [
 			{ type: 'PLAYING', name: `em ${client.guilds.cache.size} servidores` },

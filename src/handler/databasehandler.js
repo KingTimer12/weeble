@@ -5,10 +5,10 @@ const readline = require('readline');
 
 module.exports = {
     
-    async checkStatus(userId) {
+    async checkStatus(userId, mode) {
         const dbRef = ref(db());
         let bool = false
-        await get(child(dbRef, `Players/Solo/${userId}`)).then(async (snapshot) => {
+        await get(child(dbRef, `Players/${mode}/${userId}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 bool = await snapshot.val().stats
             }
@@ -17,10 +17,10 @@ module.exports = {
         return bool
     },
 
-    async getStreak(userId) {
+    async getStreak(userId, mode) {
         const dbRef = ref(db());
         let streak = 0
-        await get(child(dbRef, `Players/Solo/${userId}`)).then(async (snapshot) => {
+        await get(child(dbRef, `Players/${mode}/${userId}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 streak = await snapshot.val().streak
             }
@@ -53,16 +53,10 @@ module.exports = {
         return (streak == undefined ? 0 : streak)
     },
 
-    async setStatus(userId, stats) {
+    async updatePlayer(userId, mode, stats, streak) {
         const dbRef = ref(db());
-        await set(child(dbRef, `Players/Solo/${userId}`), {
-            stats: stats
-        })
-    },
-
-    async setStreak(userId, streak) {
-        const dbRef = ref(db());
-        await set(child(dbRef, `Players/Solo/${userId}`), {
+        await set(child(dbRef, `Players/${mode}/${userId}`), {
+            stats: stats,
             streak: streak
         })
     },
