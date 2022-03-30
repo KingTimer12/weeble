@@ -1,6 +1,6 @@
 const { MessageEmbed, MessageActionRow, MessageButton } = require('discord.js');
 const { grid, letter, others } = require('../utils/emotes.json')
-const { getWord, checkStatus, generateWord, getStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite, updatePlayer } = require('../handler/databasehandler.js')
+const { getWord, generateWord, getStreak, getStreakInfinite, getStreakInfiniteMax, setStreakAndMaxInfinite, updatePlayer } = require('../handler/databasehandler.js')
 const { usersPlaying, usersDuoPlaying, checkUserWord } = require('../handler/usershandler.js')
 const readline = require('readline');
 const fs = require('fs');

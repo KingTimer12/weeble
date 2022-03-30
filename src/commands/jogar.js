@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { checkStatus } = require('../handler/databasehandler');
 const { gameDuo, gameInfinite, gameSolo } = require('../handler/gamehandler');
 
 module.exports = {
