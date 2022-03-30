@@ -8,7 +8,7 @@ const fs = require('fs');
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
 const timezone = require('dayjs/plugin/timezone');
-const { errorNotExistEmbed, error5lettersEmbed, infiniteDefaultEmbed, defaultEmbed, infiniteLostEmbed, infiniteCorrectEmbed } = require('./embedhandler');
+const { errorNotExistEmbed, error5lettersEmbed, infiniteDefaultEmbed, defaultEmbed, infiniteLostEmbed, infiniteCorrectEmbed, normalLostEmbed, normalCorrectEmbed } = require('./embedhandler');
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -96,365 +96,37 @@ async function hasPermission(interaction) {
 
 //Game infinite - play again
 async function playAgain(interaction) {
-	const filter = (button) => button.user.id == interaction.user.id;
+    const filter = (button) => button.user.id == interaction.user.id;
 
-	let result = '';
-	await interaction.channel.awaitMessageComponent({ filter }).then(index => result = index.customId)
+    let result = '';
+    await interaction.channel.awaitMessageComponent({ filter }).then(index => result = index.customId)
 
-	if (result == 'play') return true
-	else return false
+    if (result == 'play') return true
+    else return false
+}
+
+//Game infinite - random word
+async function randomWord() {
+    const read = readline.createInterface({
+        input: fs.createReadStream('src/utils/wordsList.txt'),
+        output: process.stdout,
+        terminal: false,
+    });
+
+    const words = Object.keys({})
+    for await (const line of read) {
+        words.push(line)
+    }
+
+    return words[Math.floor(Math.random() * words.length)].toLowerCase()
 }
 
 module.exports = {
-    //diário - solo
-    async gameSolo(interaction) {
+
+    async game(interaction, mode) {
         if (!hasPermission(interaction)) return
 
-        const userId = interaction.user.id
-        const streak = await getStreak(userId, 'Solo')
-
-        const gameMessage = {
-            'line1': `   ${grid['gray'].repeat(5)}`,
-            'line2': `   ${grid['gray'].repeat(5)}`,
-            'line3': `   ${grid['gray'].repeat(5)}`,
-            'line4': `   ${grid['gray'].repeat(5)}`,
-            'line5': `   ${grid['gray'].repeat(5)}`,
-            'line6': `   ${grid['gray'].repeat(5)}`,
-        }
-
-        function returnGameTable() {
-            if (usersPlaying().has(userId)) {
-                const userTries = usersPlaying().get(userId)
-                if (userTries == undefined) {
-                    return Object.values(gameMessage).map(line => line).join('\n')
-                }
-                for (let i = 0; i < 6; i++) {
-                    if (userTries[i] == undefined || userTries[i] == null) {
-                        gameMessage[`line${i + 1}`] = `${grid['gray'].repeat(5)}`
-                    } else {
-                        gameMessage[`line${i + 1}`] = userTries[i]
-                    }
-                }
-            }
-            return Object.values(gameMessage).map(line => line).join('\n')
-        }
-
-        var exampleEmbed = new MessageEmbed()
-            .setColor('AQUA')
-            .setTitle('[───────| WEEBLE |───────]')
-            .setDescription('Adivinhe qual é o nome do **personagem**.')
-            .addFields({ name: '\u200B', value: returnGameTable(), inline: true })
-            .setTimestamp()
-            .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-
-        await interaction.reply({
-            embeds: [exampleEmbed],
-            ephemeral: true,
-        })
-
-        const correctWord = await getWord('Solo', async () => await generateWord('Solo'))
-
-        console.log(`${correctWord} palavra!`)
-
-        for (let i = 0; i < 6; i++) {
-            const collectedMessage = await awaitMessage(interaction)
-            setTimeout(async () => await collectedMessage.message.delete(), 200);
-            const word = collectedMessage.content.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
-
-            if (word == 'cancelar') {
-                await interaction.editReply(`Você cancelou a partida! Volte qualquer dia para tentar novamente.`)
-                i = 7;
-            } else if (word.length != 5) {
-                exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription(`Adivinhe qual é o nome do **personagem**.`)
-                    .addFields({ name: `\u200B`, value: returnGameTable(), inline: true })
-                    .setTimestamp()
-                    .setFooter({ text: 'ERRO | Nome precisa conter 5 letras!' })
-                await interaction.editReply({ embeds: [exampleEmbed] })
-                i--;
-            } else if (await validWord(word) == false) {
-                exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription(`Adivinhe qual é o nome do **personagem**.`)
-                    .addFields({ name: `\u200B`, value: returnGameTable(), inline: true })
-                    .setTimestamp()
-                    .setFooter({ text: 'ERRO | Esse nome não existe!' })
-                await interaction.editReply({ embeds: [exampleEmbed] })
-                //await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** Esse nome não existe! **ERRO**`)
-                i--;
-            } else {
-
-                if (usersPlaying().has(userId)) {
-                    let array = usersPlaying().get(userId)
-                    array.push(await convertTextToEmojis(word, correctWord))
-                    usersPlaying().set(userId, array)
-                } else {
-                    let array = Object.keys({})
-                    array.push(await convertTextToEmojis(word, correctWord))
-                    usersPlaying().set(userId, array)
-                }
-
-                if (word == correctWord) {
-                    exampleEmbed = new MessageEmbed()
-                        .setColor('GREEN')
-                        .setTitle('[───────| WEEBLE |───────]')
-                        .setDescription(`Parabéns! Você acertou o nome. ${others["yay"]}`)
-                        .addFields({ name: `Você está com streak de: ` + (streak + 1), value: returnGameTable(), inline: true })
-                        .setTimestamp()
-                        .setFooter({ text: 'Próxima palavra sairá às 00:00' })
-                    await interaction.editReply({ embeds: [exampleEmbed] })
-                    //await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nParabéns, você acertou em ${i + 1} ${(i+1) == 1 ? "tentativa" : "tentativas"}! ${others['yay']}\n\n${returnGameTable()}`)
-                    updatePlayer(userId, 'Solo', true, (streak + 1))
-                    usersPlaying().delete(userId)
-                    i = 7
-                } else {
-                    if (i == 5) {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('RED')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Você perdeu ${others['hihihi']}\nAcha que consegue acertar na próxima vez? ${others['hehehe']} ${streak == 0 ? `Você perdeu seu streak de ${streak}` : ``}`)
-                            .addFields({ name: `O nome correto era ${correctWord}`, value: returnGameTable(), inline: true })
-                            .setTimestamp()
-                            .setFooter({ text: 'Próxima palavra sairá às 00:00' })
-                        await interaction.editReply({ embeds: [exampleEmbed] })
-                        updatePlayer(userId, 'Solo', true, streak + 1)
-                        usersPlaying().delete(userId)
-                    } else {
-                        await interaction.editReply({ embeds: [defaultEmbed(() => returnGameTable())] });
-                    }
-                }
-            }
-        }
-    },
-
-    //diário - duo
-    async gameDuo(interaction) {
-        if (!hasPermission(interaction)) return
-
-        const userId = interaction.user.id
-        const streak = await getStreak(userId, 'Duo')
-
-        const gameMessage = {
-            'line1': `${grid['gray'].repeat(5)}`,
-            'line2': `${grid['gray'].repeat(5)}`,
-            'line3': `${grid['gray'].repeat(5)}`,
-            'line4': `${grid['gray'].repeat(5)}`,
-            'line5': `${grid['gray'].repeat(5)}`,
-            'line6': `${grid['gray'].repeat(5)}`
-        }
-
-        function returnGameTable(table) {
-            if (usersDuoPlaying().has(userId)) {
-                const map = usersDuoPlaying().get(userId)
-                if (map.has(table)) {
-                    const userTries = map.get(table)
-                    if (userTries == undefined) {
-                        return Object.values(gameMessage).map(line => line).join('\n')
-                    }
-                    for (let i = 0; i < 6; i++) {
-                        if (userTries[i] == undefined || userTries[i] == null) {
-                            gameMessage[`line${i + 1}`] = `${grid['gray'].repeat(5)}`
-                        } else {
-                            gameMessage[`line${i + 1}`] = userTries[i]
-                        }
-                    }
-                }
-            }
-            return Object.values(gameMessage).map(line => line).join('\n')
-        }
-
-        var exampleEmbed = new MessageEmbed()
-            .setColor('AQUA')
-            .setTitle('[───────| WEEBLE |───────]')
-            .setDescription('Adivinhe qual é o nome do **personagem**.')
-            .addFields(
-                { name: '\u200B', value: returnGameTable(1), inline: true },
-                { name: '\u200B', value: returnGameTable(2), inline: true }
-            )
-            .setTimestamp()
-            .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-
-        await interaction.reply({
-            embeds: [exampleEmbed],
-            ephemeral: true,
-        })
-
-        const correctWords = await getWord('Duo', async () => await generateWord('Duo'))
-        const split = correctWords.split(';')
-        const primaryWord = split[0]
-        const secondaryWord = split[1]
-
-        console.log(`${primaryWord} primeira palavra!`)
-        console.log(`${secondaryWord} segunda palavra!`)
-
-        for (let i = 0; i < 6; i++) {
-            const collectedMessage = await awaitMessage(interaction)
-            setTimeout(async () => await collectedMessage.message.delete(), 200);
-            const word = collectedMessage.content.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
-
-            if (word == 'cancelar') {
-                await interaction.editReply(`Você cancelou a partida! Volte qualquer dia para tentar novamente.`)
-                i = 7;
-            } else if (word.length != 5) {
-                exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription(`Adivinhe qual é o nome do **personagem**.`)
-                    .addFields(
-                        { name: '\u200B', value: returnGameTable(1), inline: true },
-                        { name: '\u200B', value: returnGameTable(2), inline: true }
-                    )
-                    .setTimestamp()
-                    .setFooter({ text: 'ERRO | Nome precisa conter 5 letras!' })
-                await interaction.editReply({ embeds: [exampleEmbed] })
-                i--;
-            } else if (await validWord(word) == false) {
-                exampleEmbed = new MessageEmbed()
-                    .setColor('AQUA')
-                    .setTitle('[───────| WEEBLE |───────]')
-                    .setDescription(`Adivinhe qual é o nome do **personagem**.`)
-                    .addFields(
-                        { name: '\u200B', value: returnGameTable(1), inline: true },
-                        { name: '\u200B', value: returnGameTable(2), inline: true }
-                    )
-                    .setTimestamp()
-                    .setFooter({ text: 'ERRO | Esse nome não existe!' })
-                await interaction.editReply({ embeds: [exampleEmbed] })
-                //await interaction.editReply(`[~~───────~~ **WEEBLE** ~~───────~~]\nAdivinhe qual é o nome do **personagem**\n\n${returnGameTable()}\n\n**ERRO** Esse nome não existe! **ERRO**`)
-                i--;
-            } else {
-
-                let map = new Map()
-                let table2 = Object.keys({})
-                let table1 = Object.keys({})
-
-                //TODO: Checar a palavra correta de cada tabela
-                if (usersDuoPlaying().has(userId)) {
-                    map = usersDuoPlaying().get(userId)
-                    if (map.has(1)) {
-                        table1 = map.get(1)
-                    }
-                    if (map.has(2)) {
-                        table2 = map.get(2)
-                    }
-                }
-
-                if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == primaryWord)) {
-                    table1.push(await convertTextToEmojis(word, primaryWord))
-                }
-                if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == secondaryWord)) {
-                    table2.push(await convertTextToEmojis(word, secondaryWord))
-                }
-
-                map.set(1, table1)
-                map.set(2, table2)
-                usersDuoPlaying().set(userId, map)
-
-                if (word == primaryWord) {
-                    if (checkUserWord().has(userId)) {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('GREEN')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}`)
-                            .addFields(
-                                { name: `Você está com streak de: ${(streak + 1)}`, value: returnGameTable(1), inline: true },
-                                { name: `\u200B`, value: returnGameTable(2), inline: true }
-                            )
-                            .setTimestamp()
-                            .setFooter({ text: 'Próxima palavra sairá às 00:00' })
-                        await interaction.editReply({ embeds: [exampleEmbed] })
-                        updatePlayer(userId, 'Duo', true, (streak + 1))
-                        usersPlaying().delete(userId)
-                        checkUserWord().delete(userId)
-                        i = 7
-                        return
-                    }
-                    exampleEmbed = new MessageEmbed()
-                        .setColor('GREEN')
-                        .setTitle('[───────| WEEBLE |───────]')
-                        .setDescription(`Primeira palavra encontrada!`)
-                        .addFields(
-                            { name: `\u200B`, value: returnGameTable(1), inline: true },
-                            { name: `\u200B`, value: returnGameTable(2), inline: true }
-                        )
-                        .setTimestamp()
-                        .setFooter({ text: 'Agora falta só a segunda' })
-                    await interaction.editReply({ embeds: [exampleEmbed] })
-                    checkUserWord().set(userId, primaryWord)
-                } else if (word == secondaryWord) {
-                    if (checkUserWord().has(userId)) {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('GREEN')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}`)
-                            .addFields(
-                                { name: `Você está com streak de: ${(streak + 1)}`, value: returnGameTable(1), inline: true },
-                                { name: `\u200B`, value: returnGameTable(2), inline: true }
-                            )
-                            .setTimestamp()
-                            .setFooter({ text: 'Próxima palavra sairá às 00:00' })
-                        await interaction.editReply({ embeds: [exampleEmbed] })
-                        updatePlayer(userId, 'Duo', true, (streak + 1))
-                        usersPlaying().delete(userId)
-                        checkUserWord().delete(userId)
-                        i = 7
-                        return
-                    }
-                    exampleEmbed = new MessageEmbed()
-                        .setColor('GREEN')
-                        .setTitle('[───────| WEEBLE |───────]')
-                        .setDescription(`Segunda palavra encontrada!`)
-                        .addFields(
-                            { name: `\u200B`, value: returnGameTable(1), inline: true },
-                            { name: `\u200B`, value: returnGameTable(2), inline: true }
-                        )
-                        .setTimestamp()
-                        .setFooter({ text: 'Agora falta só a primeira' })
-                    await interaction.editReply({ embeds: [exampleEmbed] })
-                    checkUserWord().set(userId, secondaryWord)
-                } else {
-                    if (i == 5) {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('RED')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription(`Você perdeu ${others['hihihi']}\nAcha que consegue acertar na próxima vez? ${others['hehehe']} ${streak == 0 ? `Você perdeu seu streak de ${streak}` : ``}`)
-                            .addFields(
-                                { name: checkUserWord().has(userId) && checkUserWord().get(userId) == primaryWord ? '\u200B' : `O nome correto: ${primaryWord}`, value: returnGameTable(1), inline: true },
-                                { name: checkUserWord().has(userId) && checkUserWord().get(userId) == secondaryWord ? '\u200B' : `O nome correto: ${secondaryWord}`, value: returnGameTable(2), inline: true }
-                            )
-                            .setTimestamp()
-                            .setFooter({ text: 'Próxima palavra sairá às 00:00' })
-                        await interaction.editReply({ embeds: [exampleEmbed] })
-                        updatePlayer(userId, 'Duo', true, streak)
-                        usersPlaying().delete(userId)
-                    } else {
-                        exampleEmbed = new MessageEmbed()
-                            .setColor('AQUA')
-                            .setTitle('[───────| WEEBLE |───────]')
-                            .setDescription('Adivinhe qual é o nome do **personagem**.')
-                            .addFields(
-                                { name: '\u200B', value: returnGameTable(1), inline: true },
-                                { name: '\u200B', value: returnGameTable(2), inline: true }
-                            )
-                            .setTimestamp()
-                            .setFooter({ text: 'Para cancelar o jogo, digite cancelar' });
-                        await interaction.editReply({ embeds: [exampleEmbed] });
-                    }
-                }
-            }
-        }
-    },
-
-    //infinito
-    async gameInfinite(interaction) {
-        if (!hasPermission(interaction)) return
-
-        const userId = interaction.user.id
-
-        var gameMessage = {
+        let gameMessage = {
             'line1': `${grid['gray'].repeat(5)}`,
             'line2': `${grid['gray'].repeat(5)}`,
             'line3': `${grid['gray'].repeat(5)}`,
@@ -474,80 +146,249 @@ module.exports = {
             }
         }
 
-        function returnGameTable() {
+        const userId = interaction.user.id
+        var streak = mode == "Infinite" ? await getStreakInfinite(userId) : await getStreak(userId, mode)
+        var streakMax = await getStreakInfiniteMax(userId)
+
+        function returnGameTable(table) {
+            if (mode != "Infinite") {
+                if (mode == "Solo") {
+                    if (usersPlaying().has(userId)) {
+                        const userTries = usersPlaying().get(userId)
+                        if (userTries == undefined) {
+                            return Object.values(gameMessage).map(line => line).join('\n')
+                        }
+                        for (let i = 0; i < 6; i++) {
+                            if (userTries[i] == undefined || userTries[i] == null) {
+                                gameMessage[`line${i + 1}`] = `${grid['gray'].repeat(5)}`
+                            } else {
+                                gameMessage[`line${i + 1}`] = userTries[i]
+                            }
+                        }
+                    }
+                } else if (mode == "Duo") {
+                    if (usersDuoPlaying().has(userId)) {
+                        const map = usersDuoPlaying().get(userId)
+                        if (map.has(table)) {
+                            const userTries = map.get(table)
+                            if (userTries == undefined) {
+                                return Object.values(gameMessage).map(line => line).join('\n')
+                            }
+                            for (let i = 0; i < 6; i++) {
+                                if (userTries[i] == undefined || userTries[i] == null) {
+                                    gameMessage[`line${i + 1}`] = `${grid['gray'].repeat(5)}`
+                                } else {
+                                    gameMessage[`line${i + 1}`] = userTries[i]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return Object.values(gameMessage).map(line => line).join('\n')
         }
 
-        var streak = await getStreakInfinite(userId)
-        var streakMax = await getStreakInfiniteMax(userId)
+        await interaction.reply(
+            {
+                embeds: [mode == "Infinite" ? 
+                infiniteDefaultEmbed(streak, streakMax, () => returnGameTable(1)) :
+                defaultEmbed(
+                    () => returnGameTable(1),
+                    () => mode == "Solo" ? undefined : returnGameTable(2)
+                )],
+                ephemeral: true,
+            })
 
-        await interaction.reply({
-            embeds: [infiniteDefaultEmbed(streak, streakMax, () => returnGameTable())],
-            ephemeral: true,
-        })
-        const read = readline.createInterface({
-            input: fs.createReadStream('src/utils/wordsList.txt'),
-            output: process.stdout,
-            terminal: false,
-        });
-
-        const words = Object.keys({})
-        for await (const line of read) {
-            words.push(line)
+        let correctWord = await randomWord()
+        let primaryWord = undefined
+        let secondaryWord = undefined
+        if (mode == "Solo") {
+            correctWord = await getWord('Solo', async () => await generateWord('Solo'))
+        } else if (mode == "Duo") {
+            correctWord = await getWord('Duo', async () => await generateWord('Duo'))
+            const split = correctWord.split(';')
+            primaryWord = split[0]
+            secondaryWord = split[1]
         }
 
-        var correctWord = words[Math.floor(Math.random() * words.length)].toLowerCase()
         console.log(`${correctWord} palavra!`)
 
         for (let i = 0; i < 6; i++) {
             const collectedMessage = await awaitMessage(interaction)
-            setTimeout(async () => await collectedMessage.message.delete(), 100);
+            setTimeout(async () => await collectedMessage.message.delete(), 50);
             const word = collectedMessage.content.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
 
             if (word == 'cancelar') {
+                await interaction.editReply({ content: 'Você cancelou a partida! Volte qualquer dia para jogar novamente.', embeds: [], components: [] })
                 i = 7;
             } else if (word.length != 5) {
-                await interaction.editReply({ embeds: [error5lettersEmbed(() => returnGameTable())] });
+                await interaction.editReply({
+                    embeds: [
+                        error5lettersEmbed(
+                            () => returnGameTable(1),
+                            () => mode == "Duo" ? returnGameTable(2) : undefined)
+                    ]
+                })
                 i--;
             } else if (await validWord(word) == false) {
-                await interaction.editReply({ embeds: [errorNotExistEmbed(() => returnGameTable())] });
+                await interaction.editReply({
+                    embeds: [
+                        errorNotExistEmbed(
+                            () => returnGameTable(1),
+                            () => mode == "Duo" ? returnGameTable(2) : undefined)
+                    ]
+                })
                 i--;
             } else {
-
-                gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord);
-
-                if (word == correctWord) {
-                    const buttons = new MessageActionRow().addComponents(
-                        new MessageButton().setCustomId('play')
-                            .setLabel('🔄 NOVO NOME')
-                            .setStyle('PRIMARY'),
-                        new MessageButton().setCustomId('cancel')
-                            .setLabel('🚩 DESISTIR')
-                            .setStyle('DANGER')
-                    )
-                    await interaction.editReply({ embeds: [infiniteCorrectEmbed(streak, streakMax, () => returnGameTable())], components: [buttons] })
-
-                    await setStreakAndMaxInfinite(userId, streak + 1, (streak + 1) > streakMax ? (streak + 1) : streakMax)
-
-                    if (await playAgain(interaction) == true) {
-                        streak = await getStreakInfinite(userId)
-                        streakMax = await getStreakInfiniteMax(userId)
-                        i = -1
-                        correctWord = words[Math.floor(Math.random() * words.length)].toLowerCase()
-                        console.log(`${correctWord} palavra!`)
-                        reset()
-                        await interaction.editReply({ embeds: [infiniteDefaultEmbed(streak, streakMax, () => returnGameTable())], components: [] })
+                if (mode == "Solo") {
+                    let array = Object.keys({})
+                    if (usersPlaying().has(userId)) {
+                        array = usersPlaying().get(userId)
                     } else {
-                        i = 7
-                        await interaction.editReply({ content: '', embeds: [], components: [] })
+                        array.push(await convertTextToEmojis(word, correctWord))
+                    }
+                    usersPlaying().set(userId, array)
+                } else if (mode == "Duo") {
+                    let map = new Map()
+                    let table2 = Object.keys({})
+                    let table1 = Object.keys({})
+                    
+                    if (usersDuoPlaying().has(userId)) {
+                        map = usersDuoPlaying().get(userId)
+                        if (map.has(1)) {
+                            table1 = map.get(1)
+                        }
+                        if (map.has(2)) {
+                            table2 = map.get(2)
+                        }
+                    }
+                    if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == primaryWord)) {
+                        table1.push(await convertTextToEmojis(word, primaryWord))
+                    }
+                    if (!(checkUserWord().has(userId) && checkUserWord().get(userId) == secondaryWord)) {
+                        table2.push(await convertTextToEmojis(word, secondaryWord))
+                    }
+                    map.set(1, table1)
+                    map.set(2, table2)
+                    usersDuoPlaying().set(userId, map)
+                } else {
+                    gameMessage[`line${i + 1}`] = await convertTextToEmojis(word, correctWord)
+                }
+
+                if (mode != "Duo") {
+                    if (word == correctWord) {
+                        if (mode == "Solo") {
+                            await interaction.editReply({ embeds: [
+                                normalCorrectEmbed((streak+1),
+                                () => returnGameTable(1),
+                                () => undefined)
+                            ]})
+                            await updatePlayer(userId, 'Solo', true, (streak + 1))
+                            usersPlaying().delete(userId)
+                            i = 7
+                        } else {
+                            const buttons = new MessageActionRow().addComponents(
+                                new MessageButton().setCustomId('play')
+                                    .setLabel('🔄 NOVO NOME')
+                                    .setStyle('PRIMARY'),
+                                new MessageButton().setCustomId('cancel')
+                                    .setLabel('🚩 DESISTIR')
+                                    .setStyle('DANGER')
+                            )
+                            await interaction.editReply({ embeds: [infiniteCorrectEmbed(streak, streakMax, () => returnGameTable())], components: [buttons] })
+                            await setStreakAndMaxInfinite(userId, streak + 1, (streak + 1) > streakMax ? (streak + 1) : streakMax)
+                            if (await playAgain(interaction) == true) {
+                                streak = await getStreakInfinite(userId)
+                                streakMax = await getStreakInfiniteMax(userId)
+                                i = -1
+                                correctWord = await randomWord()
+                                console.log(`${correctWord} palavra!`)
+                                reset()
+                                await interaction.editReply({ embeds: [infiniteDefaultEmbed(streak, streakMax, () => returnGameTable())], components: [] })
+                            } else {
+                                i = 7
+                                await interaction.editReply({ content: 'Você cancelou a partida! Volte qualquer dia para jogar novamente.', embeds: [], components: [] })
+                            }
+                        }
+                        continue
                     }
                 } else {
-                    if (i == 5) {
-                        await setStreakAndMaxInfinite(userId, 0, streakMax)
-                        await interaction.editReply({ embeds: [infiniteLostEmbed(streak, correctWord, () => returnGameTable())] });
-                    } else {
-                        await interaction.editReply({ embeds: [defaultEmbed(() => returnGameTable())] });
+                    if (word == primaryWord) {
+                        if (checkUserWord().has(userId)) {
+                            await interaction.editReply({ embeds: [normalCorrectEmbed((streak+1),
+                                () => returnGameTable(1),
+                                () => returnGameTable(2))
+                            ]})
+                            await updatePlayer(userId, 'Duo', true, (streak + 1))
+                            usersDuoPlaying().delete(userId)
+                            checkUserWord().delete(userId)
+                            i = 7
+                            return
+                        }
+                        const exampleEmbed = new MessageEmbed()
+                            .setColor('GREEN')
+                            .setTitle('[───────| WEEBLE |───────]')
+                            .setDescription(`Primeira palavra encontrada!`)
+                            .addFields(
+                                { name: `\u200B`, value: returnGameTable(1), inline: true },
+                                { name: `\u200B`, value: returnGameTable(2), inline: true }
+                            )
+                            .setTimestamp()
+                            .setFooter({ text: 'Agora falta só a segunda' })
+                        await interaction.editReply({ embeds: [exampleEmbed] })
+                        checkUserWord().set(userId, primaryWord)
+                        continue
+                    } else if (word == secondaryWord) {
+                        if (checkUserWord().has(userId)) {
+                            await interaction.editReply({ embeds: [normalCorrectEmbed((streak+1),
+                                () => returnGameTable(1),
+                                () => returnGameTable(2))
+                            ]})
+                            await updatePlayer(userId, 'Duo', true, (streak + 1))
+                            usersDuoPlaying().delete(userId)
+                            checkUserWord().delete(userId)
+                            i = 7
+                            return
+                        }
+                        const exampleEmbed = new MessageEmbed()
+                            .setColor('GREEN')
+                            .setTitle('[───────| WEEBLE |───────]')
+                            .setDescription(`Segunda palavra encontrada!`)
+                            .addFields(
+                                { name: `\u200B`, value: returnGameTable(1), inline: true },
+                                { name: `\u200B`, value: returnGameTable(2), inline: true }
+                            )
+                            .setTimestamp()
+                            .setFooter({ text: 'Agora falta só a primeira' })
+                        await interaction.editReply({ embeds: [exampleEmbed] })
+                        checkUserWord().set(userId, secondaryWord)
+                        continue
                     }
+                }
+
+                if (i == 5) {
+                    await interaction.editReply({ embeds: [normalLostEmbed(
+                        () => returnGameTable(1),
+                        () => mode == "Duo" ? returnGameTable(2) : undefined)
+                    ]})
+                    if (mode == "Infinite") {
+                        await setStreakAndMaxInfinite(userId, 0, streakMax)
+                    } else {
+                        await updatePlayer(userId, mode, true, 0)
+                        usersPlaying().delete(userId)
+                        usersDuoPlaying().delete(userId)
+                        checkUserWord().delete(userId)
+                    }
+                } else {
+                    await interaction.editReply({
+                        embeds: [mode == "Infite" ? 
+                        infiniteDefaultEmbed(streak, streakMax, () => returnGameTable(1)) :
+                        defaultEmbed(
+                            () => returnGameTable(1),
+                            () => mode == "Duo" ? returnGameTable(2) : undefined
+                        )],
+                        ephemeral: true,
+                    });
                 }
             }
         }

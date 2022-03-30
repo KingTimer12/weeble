@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const { checkStatus } = require('../handler/databasehandler');
-const { gameDuo, gameInfinite, gameSolo } = require('../handler/gamehandler');
+const { gameDuo, gameInfinite, gameSolo, game } = require('../handler/gamehandler');
 
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
@@ -28,7 +28,7 @@ module.exports = {
 	async execute(interaction) {
 		if (interaction.options.getSubcommand() == 'diário') {
 			if (await checkStatus(interaction.user.id, 'Solo') == false) {
-				gameSolo(interaction)
+				await game(interaction, 'Solo')
 				return
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
@@ -37,10 +37,10 @@ module.exports = {
 				ephemeral: true,
 			});
 		} else if (interaction.options.getSubcommand() == 'infinito') {
-			gameInfinite(interaction)
+			await game(interaction, 'Infinite')
 		} else {
 			if (await checkStatus(interaction.user.id, 'Duo') == false) {
-				gameDuo(interaction)
+				await game(interaction, 'Duo')
 				return
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
