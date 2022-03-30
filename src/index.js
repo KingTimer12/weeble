@@ -25,7 +25,8 @@ client.once('ready', () => {
 		client.user.setActivity(randomActivity.name, { type: randomActivity.type });
 	}, 900_000);
 	loopReset(() => {
-		generateWord()
+		generateWord('Solo')
+		generateWord('Duo')
 		usersPlaying().clear()
 	})
 	console.log('Bot ready!');
