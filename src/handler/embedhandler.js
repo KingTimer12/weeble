@@ -57,13 +57,19 @@ module.exports = {
         const embed = new MessageEmbed()
         .setColor('#00ff00')
         .setTitle('[───────| WEEBLE |───────]')
-        .setDescription(`Parabéns! Você acertou o nome. ${others["yay"]}\nAcertos consecutivos: **${streak}**`)
+        .setDescription(`Parabéns! Você acertou o nome. ${others["yay"]}
+        Que tal compartilhas com seus amigos essa vitória?
+        Clique em um dos botões abaixo de acordo com a plataforma!
+        Acertos consecutivos: **${streak}**`)
         .addField('\u200B', callback(), true)
         .setTimestamp()
         .setFooter({ text: 'Próximo nome sairá às 00:00' })
         if (callback2() != undefined) {
             embed.addField('\u200B', callback2(), true)
-            .setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}\nAcertos consecutivos: **${streak}**`)
+            .setDescription(`Parabéns! Você acertou os dois nomes. ${others["yay"]}
+            Que tal compartilhas com seus amigos essa vitória?
+            Clique em um dos botões abaixo de acordo com a plataforma!
+            Acertos consecutivos: **${streak}**`)
             .setFooter({ text: 'Próximos nomes sairão às 00:00' })
         }
         return embed

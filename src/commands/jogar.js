@@ -27,7 +27,8 @@ module.exports = {
 			.setDescription('O dobro do perigo!')),
 	async execute(interaction) {
 		if (interaction.options.getSubcommand() == 'diário') {
-			if (await checkStatus(interaction.user.id, 'Solo') == false) {
+			await game(interaction, 'Solo')
+			/*if (await checkStatus(interaction.user.id, 'Solo') == false) {
 				await game(interaction, 'Solo')
 				return
 			}
@@ -35,11 +36,12 @@ module.exports = {
 			await interaction.reply({
 				content: `Você poderá jogar novamente <t:${timestamp}:R>.`,
 				ephemeral: true,
-			});
+			});*/
 		} else if (interaction.options.getSubcommand() == 'infinito') {
 			await game(interaction, 'Infinite')
 		} else {
-			if (await checkStatus(interaction.user.id, 'Duo') == false) {
+			await game(interaction, 'Duo')
+			/*if (await checkStatus(interaction.user.id, 'Duo') == false) {
 				await game(interaction, 'Duo')
 				return
 			}
@@ -47,7 +49,7 @@ module.exports = {
 			await interaction.reply({
 				content: `Você poderá jogar novamente <t:${timestamp}:R>.`,
 				ephemeral: true,
-			});
+			});*/
 		}
 	},
 };

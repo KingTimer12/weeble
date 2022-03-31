@@ -13,7 +13,7 @@ module.exports = {
                 bool = await snapshot.val().stats
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         return bool
     },
 
@@ -25,7 +25,7 @@ module.exports = {
                 streak = await snapshot.val().streak
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         return ((streak == NaN || streak == undefined) ? 0 : streak)
     },
 
@@ -37,7 +37,7 @@ module.exports = {
                 streak = await snapshot.val().streak
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         return ((streak == NaN || streak == undefined) ? 0 : streak)
     },
 
@@ -49,8 +49,8 @@ module.exports = {
                 streak = await snapshot.val().streakmax
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
-        return (streak == undefined ? 0 : streak)
+        new Promise(resolve => setTimeout(resolve, 150));
+        return ((streak == NaN || streak == undefined) ? 0 : streak)
     },
 
     async updatePlayer(userId, mode, stats, streak) {
@@ -75,8 +75,21 @@ module.exports = {
         await get(child(dbRef, `Words/${mode}/${word}`)).then((snapshot) => {
             bool = snapshot.exists()
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         return bool
+    },
+
+    async getDayOfToday(mode) {
+        var day = 1
+        const dbRef = ref(db());
+        await get(child(dbRef, `Words/${mode}`)).then(async (snapshot) => {
+            if (snapshot.exists()) {
+                const array = Object.keys(await snapshot.val())
+                day = array.length
+            }
+        })
+        new Promise(resolve => setTimeout(resolve, 150));
+        return day
     },
 
     async getWord(mode, callback) {
@@ -89,13 +102,13 @@ module.exports = {
                 day = array.length
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         await get(child(dbRef, `Words/${mode}/${day}`)).then((snapshot) => {
             if (snapshot.exists()) {
                 word = snapshot.val().word
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         if (word == undefined) {
             return callback()
         }
@@ -135,7 +148,7 @@ module.exports = {
                 day = array.length
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
 
         //checar se já existe a palavra
         let bool = false
@@ -149,7 +162,7 @@ module.exports = {
                 } else bool = word == snapshot.val().word
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
         if (mode == 'Duo') {
             if (bool) {
                 word = `${words[Math.floor(Math.random() * words.length)].toLowerCase()};${word2}`
@@ -172,7 +185,7 @@ module.exports = {
                             streak = snapshot.val().streak
                         }
                     })
-                    new Promise(resolve => setTimeout(resolve, 100));
+                    new Promise(resolve => setTimeout(resolve, 150));
                     await set(child(dbRef, `Players/${mode}/${userId}`), {
                         stats: false,
                         streak: streak
@@ -180,7 +193,7 @@ module.exports = {
                 })
             }
         })
-        new Promise(resolve => setTimeout(resolve, 200));
+        new Promise(resolve => setTimeout(resolve, 150));
 
         //adicionar a nova palavra
         await set(child(dbRef, `Words/${mode}/${day+1}`), {
