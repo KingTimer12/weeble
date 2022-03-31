@@ -33,7 +33,7 @@ module.exports = {
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
 			await interaction.reply({
-				content: `Você já jogou hoje! Tempo restante até a próxima palavra: <t:${timestamp}:R>`,
+				content: `<t:${timestamp}:R> você poderá jogar novamente.`,
 				ephemeral: true,
 			});
 		} else if (interaction.options.getSubcommand() == 'infinito') {
@@ -45,7 +45,7 @@ module.exports = {
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
 			await interaction.reply({
-				content: `Você já jogou o dueto hoje! Tempo restante até a próxima palavra: <t:${timestamp}:R>`,
+				content: `<t:${timestamp}:R> você poderá jogar novamente.`,
 				ephemeral: true,
 			});
 		}

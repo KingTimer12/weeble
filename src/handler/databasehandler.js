@@ -166,7 +166,7 @@ module.exports = {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 array.forEach(async userId => {
-                    await set(child(dbRef, `Players/${userId}`), {
+                    await set(child(dbRef, `Players/${mode}/${userId}`), {
                         stats: false
                     })
                 })
@@ -175,7 +175,7 @@ module.exports = {
         new Promise(resolve => setTimeout(resolve, 200));
 
         //adicionar a nova palavra
-        await set(child(dbRef, `Words/${mode}/${day}`), {
+        await set(child(dbRef, `Words/${mode}/${day+1}`), {
             timestamp: Date.now(),
             word: word
         })

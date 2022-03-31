@@ -9,7 +9,7 @@ module.exports = {
 	loopReset(callback) {
 		setInterval(() => {
 			const braziliamTime = dayjs().tz('America/Sao_Paulo').format('HH:mm');
-			if (braziliamTime === '00:00') {
+			if (braziliamTime === '08:27') {
                 callback()
 			}
 		}, 60_000);

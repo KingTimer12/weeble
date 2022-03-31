@@ -3,7 +3,7 @@ const { Client, Collection, Intents, Constants } = require('discord.js');
 const {token} = require('../config.json');
 const {loopReset} = require('./handler/timehandler.js')
 const {generateWord} = require('./handler/databasehandler.js')
-const {usersPlaying} = require('./handler/usershandler.js')
+const {usersPlaying, usersDuoPlaying, checkUserWord} = require('./handler/usershandler.js')
 const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MESSAGE_REACTIONS] });
 
 client.commands = new Collection();
@@ -28,6 +28,9 @@ client.once('ready', () => {
 		generateWord('Solo')
 		generateWord('Duo')
 		usersPlaying().clear()
+		usersDuoPlaying().clear()
+		checkUserWord().clear()
+		console.log('Restart!')
 	})
 	console.log('Bot ready!');
 });
