@@ -26,7 +26,7 @@ module.exports = {
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
-        return streak
+        return ((streak == NaN || streak == undefined) ? 0 : streak)
     },
 
     async getStreakInfinite(userId) {
@@ -38,7 +38,7 @@ module.exports = {
             }
         })
         new Promise(resolve => setTimeout(resolve, 200));
-        return (streak == undefined ? 0 : streak)
+        return ((streak == NaN || streak == undefined) ? 0 : streak)
     },
 
     async getStreakInfiniteMax(userId) {
@@ -166,8 +166,16 @@ module.exports = {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
                 array.forEach(async userId => {
+                    let streak = 0
+                    await get(child(dbRef, `Players/${mode}/${userId}`)).then((snapshot) => {
+                        if (snapshot.exists()) {
+                            streak = snapshot.val().streak
+                        }
+                    })
+                    new Promise(resolve => setTimeout(resolve, 100));
                     await set(child(dbRef, `Players/${mode}/${userId}`), {
-                        stats: false
+                        stats: false,
+                        streak: streak
                     })
                 })
             }

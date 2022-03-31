@@ -1,7 +1,7 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 const { checkStatus } = require('../handler/databasehandler');
-const { gameDuo, gameInfinite, gameSolo, game } = require('../handler/gamehandler');
+const { game } = require('../handler/gamehandler');
 
 const dayjs = require('dayjs');
 const utc = require('dayjs/plugin/utc');
