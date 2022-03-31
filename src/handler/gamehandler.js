@@ -165,6 +165,7 @@ module.exports = {
                                 gameMessage[`line${i + 1}`] = userTries[i]
                             }
                         }
+                        
                     }
                 } else if (mode == "Duo") {
                     if (usersDuoPlaying().has(userId)) {
@@ -244,9 +245,8 @@ module.exports = {
                     let array = Object.keys({})
                     if (usersPlaying().has(userId)) {
                         array = usersPlaying().get(userId)
-                    } else {
-                        array.push(await convertTextToEmojis(word, correctWord))
                     }
+                    array.push(await convertTextToEmojis(word, correctWord))
                     usersPlaying().set(userId, array)
                 } else if (mode == "Duo") {
                     let map = new Map()

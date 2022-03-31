@@ -33,7 +33,7 @@ module.exports = {
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
 			await interaction.reply({
-				content: `<t:${timestamp}:R> você poderá jogar novamente.`,
+				content: `Você poderá jogar novamente <t:${timestamp}:R>.`,
 				ephemeral: true,
 			});
 		} else if (interaction.options.getSubcommand() == 'infinito') {
@@ -45,7 +45,7 @@ module.exports = {
 			}
 			const timestamp = dayjs().tz('America/Sao_Paulo').endOf('day').unix();
 			await interaction.reply({
-				content: `<t:${timestamp}:R> você poderá jogar novamente.`,
+				content: `Você poderá jogar novamente <t:${timestamp}:R>.`,
 				ephemeral: true,
 			});
 		}
