@@ -6,6 +6,8 @@ Desenvolvido por [KingTimer12](https://twitter.com/KingTimer12).
 
 Inspirado no [Palavreco](https://palavreco.com/), o Weeble demonstra cerca de 9 mil nomes de personagens de jogos e animes. O jogador deve tentar descobrir qual o nome em 6 tentativas, tendo com ele pequenas dicas sobre a localização das letras.
 
+![PWzCs3C.png](https://i.imgur.com/PWzCs3C.png)
+
 > ## O que tem de novo?
 
 O bot apresenta dois modos exclusivos inspirados no [Termo](https://term.ooo/) e no [Charada](https://charada.vercel.app/), sendo esses Dueto e Infinito, respectivamente. Além desses, há o modo padrão sendo este o diário, em breve haverá mais novidades.
