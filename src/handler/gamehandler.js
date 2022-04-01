@@ -400,7 +400,6 @@ module.exports = {
                             .setFooter({ text: 'Agora falta só a segunda' })
                         await interaction.editReply({ embeds: [exampleEmbed] })
                         checkUserWord().set(userId, primaryWord)
-                        continue
                     } else if (word == secondaryWord) {
                         if (checkUserWord().has(userId)) {
 
@@ -451,10 +450,10 @@ module.exports = {
                             .setFooter({ text: 'Agora falta só a primeira' })
                         await interaction.editReply({ embeds: [exampleEmbed] })
                         checkUserWord().set(userId, secondaryWord)
-                        continue
                     }
                 }
 
+                console.log(i)
                 if (i == 5) {
                     await interaction.editReply({ embeds: [normalLostEmbed(
                         () => returnGameTable(1),
