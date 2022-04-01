@@ -452,8 +452,7 @@ module.exports = {
                         checkUserWord().set(userId, secondaryWord)
                     }
                 }
-
-                console.log(i)
+                
                 if (i == 5) {
                     await interaction.editReply({ embeds: [normalLostEmbed(
                         () => returnGameTable(1),
