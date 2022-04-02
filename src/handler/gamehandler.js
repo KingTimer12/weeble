@@ -307,7 +307,7 @@ module.exports = {
                             ], components: [buttons]})
                             await updatePlayer(userId, 'Solo', true, (streak + 1))
 
-                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
+                            const responseButton = await iosOrAndroidPc(interaction)
                             if (responseButton === 'pc-ios') {
                                 await interaction.editReply({
                                     content: `Acertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
@@ -316,11 +316,11 @@ module.exports = {
                                     components: [],
                                 });
                             } else if (responseButton === 'error') {
-                                await interaction.editReply({ embeds: [
-                                    normalCorrectEmbed((streak+1),
-                                    () => returnGameTable(1),
-                                    () => undefined)
-                                ]});
+                                await interaction.editReply({
+                                    content: `Sinto muito, mas eu não tenho o dia todo.`,
+                                    embeds: [],
+                                    components: []
+                                })
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
@@ -383,11 +383,11 @@ module.exports = {
                                     components: [],
                                 })
                             } else if (responseButton === 'error') {
-                                await interaction.editReply({ embeds: [
-                                    normalCorrectEmbed((streak+1),
-                                    () => returnGameTable(1),
-                                    () => returnGameTable(2))
-                                ]})
+                                await interaction.editReply({
+                                    content: `Sinto muito, mas eu não tenho o dia todo.`,
+                                    embeds: [],
+                                    components: []
+                                })
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
@@ -430,27 +430,27 @@ module.exports = {
                             ], components: [buttons]})
                             await updatePlayer(userId, 'Duo', true, (streak + 1))
 
-                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
+                            const responseButton = await iosOrAndroidPc(interaction)
                             if (responseButton === 'pc-ios') {
                                 await interaction.editReply({
                                     content: `Acertei o dueto do Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}`,
                                     embeds: [],
                                     components: [],
-                                });
+                                })
                             } else if (responseButton === 'error') {
-                                await interaction.editReply({ embeds: [
-                                    normalCorrectEmbed((streak+1),
-                                    () => returnGameTable(1),
-                                    () => returnGameTable(2))
-                                ]});
+                                await interaction.editReply({
+                                    content: `Sinto muito, mas eu não tenho o dia todo.`,
+                                    embeds: [],
+                                    components: []
+                                })
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}\`\`\``,
                                     embeds: [],
                                     components: [],
-                                });
+                                })
                             }
 
                             usersDuoPlaying().delete(userId)
