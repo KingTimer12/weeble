@@ -9,8 +9,8 @@ module.exports = {
 	async execute(interaction) {
 
 		const embed = new MessageEmbed().setTitle('Como jogar?')
-		.setDescription(`Utilize o comando /jogar e tente descobrir qual é o nome do personagem em **6 tentativas**!
-		Ao enviar uma mensagem, os emojis mostraram o quão perto você está da\nresposta.\n\n**Exemplos:**`)
+		.setDescription(`Utilize o comando /jogar, selecione o modo\n e tente descobrir qual é o nome do personagem em **6 tentativas**!
+		Ao enviar uma mensagem, os emojis mostrarão\n o quão perto você está da resposta.\n\n**Exemplos:**`)
 		.addField(
 			`\u200B`, 
 		`${letter['l']['green']}${letter['u']['gray']}${letter['c']['gray']}${letter['a']['gray']}${letter['s']['gray']}
