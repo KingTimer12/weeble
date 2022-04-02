@@ -19,6 +19,7 @@ client.once('ready', () => {
 		const activities = [
 			{ type: 'PLAYING', name: `em ${client.guilds.cache.size} servidores` },
 			{ type: 'PLAYING', name: 'contra você!' },
+			{ type: 'PLAYING', name: 'dois modos exclusivos!' },
 			{ type: 'WATCHING', name: 'suas tentativas...' },
 		];
 		const randomActivity = activities[Math.floor(Math.random() * activities.length)];
@@ -33,38 +34,6 @@ client.once('ready', () => {
 		console.log('Restart!')
 	})
 	console.log('Bot ready!');
-});
-
-// Preciso dessas mensagens para minha ansiedade
-client.on('guildCreate', async guild => {
-	const guildsChannel = client.channels.cache.get(channel_id);
-	const guildCreateTimestamp = guild.createdTimestamp;
-	const ownerGuild = await guild.fetchOwner().then(owner => owner.user.tag);
-	const embed = new MessageEmbed()
-		.setAuthor({ name: `${guild.name} (${guild.id})` })
-		.setTitle('Novo servidor!')
-		.addFields(
-			{ name: 'Dono', value: `\`${ownerGuild}\` (${guild.ownerId})`, inline: true },
-			{ name: 'Membros', value: `${guild.memberCount}`, inline: true },
-			{ name: 'Criado em', value: `<t:${Math.floor(guildCreateTimestamp / 1000)}>`, inline: true },
-		)
-		.setFooter({ text: `Agora estou em ${client.guilds.cache.size} servidores!` })
-		.setColor('#2f3136');
-	guildsChannel.send({ embeds: [embed] });
-});
-
-client.on('guildDelete', async guild => {
-	const guildsChannel = client.channels.cache.get(channel_id);
-	const ownerGuild = await guild.fetchOwner().then(owner => owner.user.tag);
-	const embed = new MessageEmbed()
-		.setAuthor({ name: `${guild.name} (${guild.id})` })
-		.setTitle('Saí de um servidor :(')
-		.addFields(
-			{ name: 'Dono', value: `\`${ownerGuild}\` (${guild.ownerId})`, inline: true },
-		)
-		.setFooter({ text: `Agora estou em ${client.guilds.cache.size} servidores!` })
-		.setColor('#2f3136');
-	guildsChannel.send({ embeds: [embed] });
 });
 
 client.on('interactionCreate', async interaction => {
