@@ -127,7 +127,7 @@ async function iosOrAndroidPc(interaction) {
 	const filter = (button) => button.user.id === interaction.user.id;
 
 	let plataform = '';
-	await interaction.channel.awaitMessageComponent({ filter, time: 60_000  })
+	await interaction.channel.awaitMessageComponent({ filter, time: 30_000  })
 		.then(int => {
 			if (int.customId === 'pc-ios') plataform = 'pc-ios';
 			else plataform = 'android';
@@ -361,7 +361,6 @@ module.exports = {
                 } else {
                     if (word == primaryWord) {
                         if (checkUserWord().has(userId)) {
-                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
                             buttons.addComponents(
                                 new MessageButton().setCustomId('pc-ios')
                                 .setLabel('PC ou iOS')
@@ -375,7 +374,8 @@ module.exports = {
                             ], components: [buttons]})
                             await updatePlayer(userId, 'Duo', true, (streak + 1))
 
-                            if (await iosOrAndroidPc(interaction) === 'pc-ios') {
+                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
+                            if (responseButton === 'pc-ios') {
                                 await interaction.editReply({
                                     content: `Acertei o dueto do Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}`,
@@ -416,7 +416,6 @@ module.exports = {
                         checkUserWord().set(userId, primaryWord)
                     } else if (word == secondaryWord) {
                         if (checkUserWord().has(userId)) {
-                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
                             buttons.addComponents(
                                 new MessageButton().setCustomId('pc-ios')
                                 .setLabel('PC ou iOS')
@@ -431,7 +430,8 @@ module.exports = {
                             ], components: [buttons]})
                             await updatePlayer(userId, 'Duo', true, (streak + 1))
 
-                            if (await iosOrAndroidPc(interaction) === 'pc-ios') {
+                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
+                            if (responseButton === 'pc-ios') {
                                 await interaction.editReply({
                                     content: `Acertei o dueto do Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}`,
