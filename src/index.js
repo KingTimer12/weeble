@@ -1,6 +1,6 @@
 const fs = require('fs');
 const { Client, Collection, Intents, Constants } = require('discord.js');
-const {token} = require('../config.json');
+const {token, channel_id} = require('../config.json');
 const {loopReset} = require('./handler/timehandler.js')
 const {generateWord} = require('./handler/databasehandler.js')
 const {usersPlaying, usersDuoPlaying, checkUserWord} = require('./handler/usershandler.js')
@@ -33,6 +33,38 @@ client.once('ready', () => {
 		console.log('Restart!')
 	})
 	console.log('Bot ready!');
+});
+
+// Preciso dessas mensagens para minha ansiedade
+client.on('guildCreate', async guild => {
+	const guildsChannel = client.channels.cache.get(channel_id);
+	const guildCreateTimestamp = guild.createdTimestamp;
+	const ownerGuild = await guild.fetchOwner().then(owner => owner.user.tag);
+	const embed = new MessageEmbed()
+		.setAuthor({ name: `${guild.name} (${guild.id})` })
+		.setTitle('Novo servidor!')
+		.addFields(
+			{ name: 'Dono', value: `\`${ownerGuild}\` (${guild.ownerId})`, inline: true },
+			{ name: 'Membros', value: `${guild.memberCount}`, inline: true },
+			{ name: 'Criado em', value: `<t:${Math.floor(guildCreateTimestamp / 1000)}>`, inline: true },
+		)
+		.setFooter({ text: `Agora estou em ${client.guilds.cache.size} servidores!` })
+		.setColor('#2f3136');
+	guildsChannel.send({ embeds: [embed] });
+});
+
+client.on('guildDelete', async guild => {
+	const guildsChannel = client.channels.cache.get(channel_id);
+	const ownerGuild = await guild.fetchOwner().then(owner => owner.user.tag);
+	const embed = new MessageEmbed()
+		.setAuthor({ name: `${guild.name} (${guild.id})` })
+		.setTitle('Saí de um servidor :(')
+		.addFields(
+			{ name: 'Dono', value: `\`${ownerGuild}\` (${guild.ownerId})`, inline: true },
+		)
+		.setFooter({ text: `Agora estou em ${client.guilds.cache.size} servidores!` })
+		.setColor('#2f3136');
+	guildsChannel.send({ embeds: [embed] });
 });
 
 client.on('interactionCreate', async interaction => {
