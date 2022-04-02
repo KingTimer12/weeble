@@ -101,7 +101,7 @@ async function playAgain(interaction) {
     const filter = (button) => button.user.id == interaction.user.id;
 
     let result = '';
-    await interaction.channel.awaitMessageComponent({ filter }).then(index => result = index.customId)
+    await interaction.channel.awaitMessageComponent({ filter, time: 60_000 }).then(index => result = index.customId).catch(index => result = '')
 
     if (result == 'play') return true
     else return false
@@ -127,11 +127,11 @@ async function iosOrAndroidPc(interaction) {
 	const filter = (button) => button.user.id === interaction.user.id;
 
 	let plataform = '';
-	await interaction.channel.awaitMessageComponent({ filter })
+	await interaction.channel.awaitMessageComponent({ filter, time: 60_000  })
 		.then(int => {
 			if (int.customId === 'pc-ios') plataform = 'pc-ios';
 			else plataform = 'android';
-		});
+		}).catch(index => plataform = 'error')
 
 	return plataform;
 }
@@ -307,13 +307,20 @@ module.exports = {
                             ], components: [buttons]})
                             await updatePlayer(userId, 'Solo', true, (streak + 1))
 
-                            if (await iosOrAndroidPc(interaction) === 'pc-ios') {
+                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
+                            if (responseButton === 'pc-ios') {
                                 await interaction.editReply({
                                     content: `Acertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToDefaultEmojis(returnGameTable())}`,
                                     embeds: [],
                                     components: [],
                                 });
+                            } else if (responseButton === 'error') {
+                                await interaction.editReply({ embeds: [
+                                    normalCorrectEmbed((streak+1),
+                                    () => returnGameTable(1),
+                                    () => undefined)
+                                ]});
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
@@ -354,6 +361,7 @@ module.exports = {
                 } else {
                     if (word == primaryWord) {
                         if (checkUserWord().has(userId)) {
+                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
                             buttons.addComponents(
                                 new MessageButton().setCustomId('pc-ios')
                                 .setLabel('PC ou iOS')
@@ -373,14 +381,20 @@ module.exports = {
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}`,
                                     embeds: [],
                                     components: [],
-                                });
+                                })
+                            } else if (responseButton === 'error') {
+                                await interaction.editReply({ embeds: [
+                                    normalCorrectEmbed((streak+1),
+                                    () => returnGameTable(1),
+                                    () => returnGameTable(2))
+                                ]})
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
                                     \n${await convertToNumberEmojis(userId, primaryWord,secondaryWord)}\`\`\``,
                                     embeds: [],
                                     components: [],
-                                });
+                                })
                             }
 
                             usersDuoPlaying().delete(userId)
@@ -402,7 +416,7 @@ module.exports = {
                         checkUserWord().set(userId, primaryWord)
                     } else if (word == secondaryWord) {
                         if (checkUserWord().has(userId)) {
-
+                            const responseButton = await iosOrAndroidPc(interaction) === 'pc-ios'
                             buttons.addComponents(
                                 new MessageButton().setCustomId('pc-ios')
                                 .setLabel('PC ou iOS')
@@ -424,6 +438,12 @@ module.exports = {
                                     embeds: [],
                                     components: [],
                                 });
+                            } else if (responseButton === 'error') {
+                                await interaction.editReply({ embeds: [
+                                    normalCorrectEmbed((streak+1),
+                                    () => returnGameTable(1),
+                                    () => returnGameTable(2))
+                                ]});
                             } else {
                                 await interaction.editReply({
                                     content: `\`\`\`\nAcertei o Weeble de hoje!\nDia ${await getDayOfToday(mode)} - ${streak+1} ${(streak+1) == 1 ? 'vitória consecutiva' : 'vitórias consecutivas 🔥'}
