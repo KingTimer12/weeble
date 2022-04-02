@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, Collection, Intents, Constants } = require('discord.js');
+const { Client, Collection, Intents, Constants, MessageEmbed } = require('discord.js');
 const {token, channel_id} = require('../config.json');
 const {loopReset} = require('./handler/timehandler.js')
 const {generateWord} = require('./handler/databasehandler.js')
