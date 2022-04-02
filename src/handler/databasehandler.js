@@ -141,7 +141,7 @@ module.exports = {
         } else word = word1
 
         //pegar o dia
-        var day = 1
+        var day = 0
         await get(child(dbRef, `Words/${mode}`)).then(async (snapshot) => {
             if (snapshot.exists()) {
                 const array = Object.keys(await snapshot.val())
