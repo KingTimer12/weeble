@@ -229,11 +229,10 @@ module.exports = {
         console.log(`${correctWord} palavra!`)
 
         for (let i = 0; i < 6; i++) {
+            if (interaction.replied) {return}
             const collectedMessage = await awaitMessage(interaction)
             setTimeout(async () => await collectedMessage.message.delete(), 100);
             const word = collectedMessage.content.normalize('NFKD').replace(/\p{Diacritic}/gu, '');
-            
-            if (interaction.replied) {return}
 
             if (word == 'cancelar') {
                 await interaction.editReply({ content: 'Você cancelou a partida! Volte qualquer dia para jogar novamente.', embeds: [], components: [] })
